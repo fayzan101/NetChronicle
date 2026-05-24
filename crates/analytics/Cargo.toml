@@ -1,0 +1,13 @@
+[package]
+name = "netchronicle-analytics"
+description = "Productivity scores, focus time, and insight generation"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+chrono = { workspace = true }
+serde = { workspace = true }
+
+netchronicle-common = { workspace = true }

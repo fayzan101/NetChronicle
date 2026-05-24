@@ -1,0 +1,13 @@
+[package]
+name = "netchronicle-categorization"
+description = "Classifies domains and apps into productivity categories"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+tracing = { workspace = true }
+
+netchronicle-common = { workspace = true }
