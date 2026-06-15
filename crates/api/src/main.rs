@@ -1,5 +1,6 @@
 mod app;
 mod config;
+mod query;
 mod routes;
 mod state;
 
@@ -11,6 +12,8 @@ use crate::config::ApiConfig;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    dotenvy::dotenv().ok();
+
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .init();
