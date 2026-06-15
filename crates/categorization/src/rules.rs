@@ -45,6 +45,12 @@ impl RuleStore {
                     category: ActivityCategory::Distraction,
                     priority: 10,
                 },
+                CategoryRule {
+                    pattern: "code".into(),
+                    pattern_type: RulePatternType::AppName,
+                    category: ActivityCategory::Work,
+                    priority: 8,
+                },
             ],
         }
     }

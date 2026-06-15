@@ -1,7 +1,10 @@
 //! NetChronicle background agent — collects app/site/network activity.
 
+mod browser;
 mod collector;
 mod config;
+mod tracker;
+mod window;
 
 use anyhow::Context;
 use tracing::info;
@@ -11,6 +14,8 @@ use crate::config::AgentConfig;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
+    dotenvy::dotenv().ok();
+
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .init();

@@ -7,7 +7,9 @@ use uuid::Uuid;
 pub struct AgentConfig {
     pub user_id: Uuid,
     pub database_url: String,
+    pub poll_interval: Duration,
     pub network_sample_interval: Duration,
+    pub min_segment_secs: u32,
 }
 
 impl AgentConfig {
@@ -17,8 +19,16 @@ impl AgentConfig {
             .and_then(|s| Uuid::parse_str(&s).ok())
             .unwrap_or_else(Uuid::nil);
 
-        let database_url = env::var("DATABASE_URL")
-            .unwrap_or_else(|_| "postgres://netchronicle:netchronicle@localhost:5432/netchronicle".into());
+        let database_url = env::var("DATABASE_URL").unwrap_or_else(|_| {
+            "postgres://netchronicle:netchronicle@localhost:5432/netchronicle".into()
+        });
+
+        let poll_interval = Duration::from_secs(
+            env::var("AGENT_POLL_INTERVAL_SECS")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(2),
+        );
 
         let network_sample_interval = Duration::from_secs(
             env::var("NETWORK_SAMPLE_INTERVAL_SECS")
@@ -27,10 +37,17 @@ impl AgentConfig {
                 .unwrap_or(30),
         );
 
+        let min_segment_secs = env::var("AGENT_MIN_SEGMENT_SECS")
+            .ok()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(3);
+
         Ok(Self {
             user_id,
             database_url,
+            poll_interval,
             network_sample_interval,
+            min_segment_secs,
         })
     }
 }

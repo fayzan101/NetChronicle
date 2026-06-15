@@ -42,24 +42,33 @@ Background system that tracks digital activity, measures network health, and sur
 ## Quick start
 
 ```bash
-# Database
 cp .env.example .env
-docker compose up -d
+# Edit .env — for Neon, set DATABASE_URL with ?sslmode=require
 
-# Apply migrations (requires sqlx-cli: cargo install sqlx-cli)
-sqlx database create
-sqlx migrate run
-
-# API
+# API (runs migrations on startup)
 cargo run -p netchronicle-api
 
-# Dashboard
-cd apps/dashboard
-npm install
-npm run dev
+# Agent (tracks foreground app/window + network; writes to PostgreSQL)
+cargo run -p netchronicle-agent
 ```
 
-Open [http://localhost:3000](http://localhost:3000). API defaults to `http://localhost:8080`.
+### Neon PostgreSQL
+
+Neon requires SSL. Use a connection string like:
+
+```
+DATABASE_URL=postgresql://USER:PASSWORD@HOST/neondb?sslmode=require
+```
+
+Do **not** commit `.env` — it is gitignored.
+
+### Local PostgreSQL (optional)
+
+```bash
+docker compose up -d
+```
+
+Open [http://localhost:3000](http://localhost:3000) for the dashboard (when added). API defaults to `http://localhost:8080`.
 
 ## API endpoints (planned)
 
