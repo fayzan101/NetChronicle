@@ -7,6 +7,7 @@ use tracing::{debug, warn};
 use uuid::Uuid;
 
 use crate::browser::{browser_url_proxy, extract_domain, is_browser};
+use crate::db_retry::with_db_retry;
 use crate::window::ForegroundWindow;
 
 #[derive(Debug, Clone)]
@@ -142,43 +143,52 @@ impl ActivityTracker {
         let recorded_at = Utc::now();
         let repo = ActivityRepository::new(&self.pool);
 
-        repo.insert_app_log(
-            self.user_id,
-            &segment.window.app_name,
-            Some(&segment.window.window_title),
-            segment.duration_sec as i32,
-            segment.category,
-            recorded_at,
-        )
-        .await?;
-
-        if let Some(domain) = &segment.domain {
-            let url = browser_url_proxy(&segment.window.window_title, domain);
-            repo.insert_website_log(
+        with_db_retry(|| async {
+            repo.insert_app_log(
                 self.user_id,
-                &url,
-                domain,
+                &segment.window.app_name,
+                Some(&segment.window.window_title),
                 segment.duration_sec as i32,
                 segment.category,
                 recorded_at,
             )
+            .await
+        })
+        .await?;
+
+        if let Some(domain) = &segment.domain {
+            let url = browser_url_proxy(&segment.window.window_title, domain);
+            with_db_retry(|| async {
+                repo.insert_website_log(
+                    self.user_id,
+                    &url,
+                    domain,
+                    segment.duration_sec as i32,
+                    segment.category,
+                    recorded_at,
+                )
+                .await
+            })
             .await?;
         }
 
-        repo.insert_raw_event(
-            self.user_id,
-            "activity_snapshot",
-            json!({
-                "app": segment.window.app_name,
-                "title": segment.window.window_title,
-                "domain": segment.domain,
-                "category": category_to_db(segment.category),
-                "duration_sec": segment.duration_sec,
-                "started_at": segment.started_at.to_rfc3339(),
-                "flushed": true,
-            }),
-            recorded_at,
-        )
+        with_db_retry(|| async {
+            repo.insert_raw_event(
+                self.user_id,
+                "activity_snapshot",
+                json!({
+                    "app": segment.window.app_name,
+                    "title": segment.window.window_title,
+                    "domain": segment.domain,
+                    "category": category_to_db(segment.category),
+                    "duration_sec": segment.duration_sec,
+                    "started_at": segment.started_at.to_rfc3339(),
+                    "flushed": true,
+                }),
+                recorded_at,
+            )
+            .await
+        })
         .await?;
 
         self.last_heartbeat = None;

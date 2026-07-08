@@ -1,8 +1,10 @@
 use axum::{extract::State, routing::get, Json, Router};
-use chrono::Utc;
-use netchronicle_db::{AnalyticsRepository, NetworkRepository};
+use netchronicle_analytics::{AnalyticsEngine, DailyAnalyticsInput};
+use netchronicle_db::{session_row_to_common, NetworkRepository, ReportRepository, SessionRepository};
 use serde::Serialize;
 
+use crate::error::ApiResult;
+use crate::params::{day_bounds, DateRangeParams};
 use crate::query::UserQuery;
 use crate::state::AppState;
 
@@ -15,6 +17,7 @@ pub struct DailyReportResponse {
     pub network_health_score: f32,
     pub distraction_ratio: f32,
     pub focus_minutes: u32,
+    pub cached: bool,
 }
 
 pub fn router() -> Router<AppState> {
@@ -24,46 +27,65 @@ pub fn router() -> Router<AppState> {
 async fn daily_report(
     State(state): State<AppState>,
     user: UserQuery,
-) -> Result<Json<DailyReportResponse>, (axum::http::StatusCode, String)> {
-    let today = Utc::now().date_naive();
-    let analytics = AnalyticsRepository::new(&state.db);
-    let stats = analytics
-        .daily_activity_stats(user.user_id, today)
-        .await
-        .map_err(internal_error)?;
+    range: DateRangeParams,
+) -> ApiResult<Json<DailyReportResponse>> {
+    let day = range.from.date_naive();
+    let reports = ReportRepository::new(&state.db);
 
-    let day_start = today.and_hms_opt(0, 0, 0).unwrap().and_utc();
+    if let Some(cached) = reports
+        .get(user.user_id, "daily", day, day)
+        .await
+        .map_err(|e| crate::error::ApiError::internal(e.to_string()))?
+    {
+        let summary = cached.summary;
+        return Ok(Json(DailyReportResponse {
+            date: day.to_string(),
+            productivity_score: summary["productivityScore"].as_f64().unwrap_or(0.0) as f32,
+            total_online_minutes: summary["totalOnlineMinutes"].as_u64().unwrap_or(0) as u32,
+            network_health_score: summary["networkHealthScore"].as_f64().unwrap_or(0.0) as f32,
+            distraction_ratio: summary["distractionRatio"].as_f64().unwrap_or(0.0) as f32,
+            focus_minutes: summary["focusMinutes"].as_u64().unwrap_or(0) as u32,
+            cached: true,
+        }));
+    }
+
+    let (from, to) = day_bounds(day);
+    let session_rows = SessionRepository::new(&state.db)
+        .list(user.user_id, from, to, 1000, 0)
+        .await
+        .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
+    let sessions: Vec<_> = session_rows.into_iter().map(session_row_to_common).collect();
+
     let network_score = NetworkRepository::new(&state.db)
-        .stability_score(user.user_id, day_start)
+        .stability_score(user.user_id, from)
         .await
-        .map_err(internal_error)?;
+        .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
 
-    let total_online_minutes = (stats.total_sec / 60) as u32;
-    let focus_minutes = (stats.productive_sec / 60) as u32;
-    let distraction_ratio = if stats.total_sec > 0 {
-        stats.distraction_sec as f32 / stats.total_sec as f32
-    } else {
-        0.0
-    };
-    let productivity_score = if stats.total_sec > 0 {
-        (stats.productive_sec as f32 / stats.total_sec as f32) * 100.0
-    } else {
-        0.0
-    };
+    let summary = AnalyticsEngine::daily_summary(&DailyAnalyticsInput {
+        date: day,
+        sessions,
+        network_health_score: network_score,
+    });
+
+    let payload = serde_json::json!({
+        "productivityScore": summary.productivity_score,
+        "totalOnlineMinutes": summary.total_online_minutes,
+        "networkHealthScore": summary.network_health_score,
+        "distractionRatio": summary.distraction_ratio,
+        "focusMinutes": summary.focus_minutes,
+    });
+    reports
+        .upsert(user.user_id, "daily", day, day, payload)
+        .await
+        .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
 
     Ok(Json(DailyReportResponse {
-        date: today.to_string(),
-        productivity_score,
-        total_online_minutes,
-        network_health_score: network_score,
-        distraction_ratio,
-        focus_minutes,
+        date: day.to_string(),
+        productivity_score: summary.productivity_score,
+        total_online_minutes: summary.total_online_minutes,
+        network_health_score: summary.network_health_score,
+        distraction_ratio: summary.distraction_ratio,
+        focus_minutes: summary.focus_minutes,
+        cached: false,
     }))
-}
-
-fn internal_error(error: impl std::fmt::Display) -> (axum::http::StatusCode, String) {
-    (
-        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-        error.to_string(),
-    )
 }

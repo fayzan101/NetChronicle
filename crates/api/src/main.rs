@@ -1,5 +1,7 @@
 mod app;
 mod config;
+mod error;
+mod params;
 mod query;
 mod routes;
 mod state;

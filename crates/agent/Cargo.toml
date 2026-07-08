@@ -26,3 +26,4 @@ netchronicle-categorization = { workspace = true }
 netchronicle-common = { workspace = true }
 netchronicle-db = { workspace = true }
 netchronicle-network-monitor = { workspace = true }
+netchronicle-session-builder = { workspace = true }

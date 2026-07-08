@@ -11,6 +11,7 @@ pub struct SessionDraft {
     pub end_time: Option<DateTime<Utc>>,
     pub primary_apps: Vec<String>,
     pub category: ActivityCategory,
+    pub productivity_score: Option<f32>,
     pub network_stability: Option<NetworkStability>,
 }
 

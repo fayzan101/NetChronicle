@@ -3,6 +3,7 @@ use chrono::Utc;
 use netchronicle_db::{ActivityRepository, NetworkRepository};
 use serde::Serialize;
 
+use crate::error::ApiResult;
 use crate::query::UserQuery;
 use crate::state::AppState;
 
@@ -23,17 +24,17 @@ pub fn router() -> Router<AppState> {
 async fn live_status(
     State(state): State<AppState>,
     user: UserQuery,
-) -> Result<Json<LiveStatusResponse>, (axum::http::StatusCode, String)> {
+) -> ApiResult<Json<LiveStatusResponse>> {
     let activity = ActivityRepository::new(&state.db);
     let snapshot = activity
         .latest_snapshot(user.user_id)
         .await
-        .map_err(internal_error)?;
+        .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
 
     let latency = NetworkRepository::new(&state.db)
         .latest_latency(user.user_id)
         .await
-        .map_err(internal_error)?;
+        .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
 
     let mut response = LiveStatusResponse {
         current_app: None,
@@ -79,11 +80,4 @@ fn focus_score_from_category(category: Option<&str>) -> f32 {
         Some("distraction") => 15.0,
         _ => 40.0,
     }
-}
-
-fn internal_error(error: impl std::fmt::Display) -> (axum::http::StatusCode, String) {
-    (
-        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-        error.to_string(),
-    )
 }

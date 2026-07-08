@@ -9,5 +9,6 @@ authors.workspace = true
 [dependencies]
 chrono = { workspace = true }
 serde = { workspace = true }
+uuid = { workspace = true }
 
 netchronicle-common = { workspace = true }

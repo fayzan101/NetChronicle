@@ -3,6 +3,9 @@
 mod browser;
 mod collector;
 mod config;
+mod db_retry;
+mod ignore;
+mod session_job;
 mod tracker;
 mod window;
 

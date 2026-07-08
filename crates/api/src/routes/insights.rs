@@ -1,17 +1,21 @@
 use axum::{extract::State, routing::get, Json, Router};
-use chrono::Utc;
-use netchronicle_db::AnalyticsRepository;
+use netchronicle_analytics::AnalyticsEngine;
+use netchronicle_db::{session_row_to_common, AnalyticsRepository, SessionRepository};
 use serde::Serialize;
 
-use crate::query::{day_bounds, UserQuery};
+use crate::error::ApiResult;
+use crate::params::DateRangeParams;
+use crate::query::UserQuery;
 use crate::state::AppState;
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct InsightsResponse {
     pub insights: Vec<InsightItem>,
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct InsightItem {
     pub title: String,
     pub body: String,
@@ -25,80 +29,33 @@ pub fn router() -> Router<AppState> {
 async fn insights(
     State(state): State<AppState>,
     user: UserQuery,
-) -> Result<Json<InsightsResponse>, (axum::http::StatusCode, String)> {
-    let today = Utc::now().date_naive();
-    let (from, to) = day_bounds(today);
+    range: DateRangeParams,
+) -> ApiResult<Json<InsightsResponse>> {
+    let session_rows = SessionRepository::new(&state.db)
+        .list(user.user_id, range.from, range.to, 1000, 0)
+        .await
+        .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
+    let sessions: Vec<_> = session_rows.into_iter().map(session_row_to_common).collect();
+
     let analytics = AnalyticsRepository::new(&state.db);
-
-    let stats = analytics
-        .daily_activity_stats(user.user_id, today)
-        .await
-        .map_err(internal_error)?;
     let top_apps = analytics
-        .top_apps(user.user_id, from, to, 3)
+        .top_apps(user.user_id, range.from, range.to, 3)
         .await
-        .map_err(internal_error)?;
+        .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
     let top_domains = analytics
-        .top_domains(user.user_id, from, to, 3)
+        .top_domains(user.user_id, range.from, range.to, 3)
         .await
-        .map_err(internal_error)?;
+        .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
 
-    let mut insights = Vec::new();
-
-    if stats.total_sec == 0 {
-        insights.push(InsightItem {
-            title: "Start tracking".into(),
-            body: "Run the NetChronicle agent to begin collecting activity data.".into(),
-            severity: "info".into(),
-        });
-    } else {
-        let distraction_pct = (stats.distraction_sec as f32 / stats.total_sec as f32) * 100.0;
-        if distraction_pct > 20.0 {
-            insights.push(InsightItem {
-                title: "High distraction time".into(),
-                body: format!(
-                    "Distraction sites accounted for {:.0}% of tracked time today.",
-                    distraction_pct
-                ),
-                severity: "warning".into(),
-            });
-        }
-
-        let productive_pct = (stats.productive_sec as f32 / stats.total_sec as f32) * 100.0;
-        if productive_pct >= 60.0 {
-            insights.push(InsightItem {
-                title: "Strong focus day".into(),
-                body: format!(
-                    "{:.0}% of your tracked time was work or learning.",
-                    productive_pct
-                ),
-                severity: "positive".into(),
-            });
-        }
-
-        if let Some((app, secs)) = top_apps.first() {
-            insights.push(InsightItem {
-                title: "Most used app".into(),
-                body: format!("You spent {} minutes in {} today.", secs / 60, app),
-                severity: "info".into(),
-            });
-        }
-
-        if let Some((domain, secs)) = top_domains.first() {
-            insights.push(InsightItem {
-                title: "Top website".into(),
-                body: format!("{} was your most visited site ({} minutes).", domain, secs / 60),
-                severity: "info".into(),
-            });
-        }
-    }
+    let generated = AnalyticsEngine::generate_insights(&sessions, &top_apps, &top_domains);
+    let insights = generated
+        .into_iter()
+        .map(|item| InsightItem {
+            title: item.title,
+            body: item.body,
+            severity: format!("{:?}", item.severity).to_lowercase(),
+        })
+        .collect();
 
     Ok(Json(InsightsResponse { insights }))
-}
-
-fn internal_error(error: impl std::fmt::Display) -> (axum::http::StatusCode, String) {
-    (
-        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-        error.to_string(),
-    )
 }
