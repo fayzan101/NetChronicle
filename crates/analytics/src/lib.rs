@@ -3,5 +3,7 @@
 mod engine;
 mod insight;
 
-pub use engine::AnalyticsEngine;
-pub use insight::Insight;
+pub use engine::{
+    AnalyticsEngine, CategoryMinutes, DailyAnalyticsInput, WeeklySummary,
+};
+pub use insight::{Insight, InsightSeverity};

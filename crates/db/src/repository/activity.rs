@@ -101,20 +101,23 @@ impl<'a> ActivityRepository<'a> {
         from: DateTime<Utc>,
         to: DateTime<Utc>,
         limit: i64,
+        offset: i64,
     ) -> anyhow::Result<Vec<AppActivityRow>> {
         let rows = sqlx::query_as::<_, AppActivityRow>(
             r#"
-            SELECT id, user_id, app_name, window_title, duration_sec, category::text AS category, recorded_at
+            SELECT id, user_id, session_id, app_name, window_title, duration_sec,
+                   category::text AS category, recorded_at
             FROM app_activity_logs
             WHERE user_id = $1 AND recorded_at >= $2 AND recorded_at < $3
-            ORDER BY recorded_at DESC
-            LIMIT $4
+            ORDER BY recorded_at ASC
+            LIMIT $4 OFFSET $5
             "#,
         )
         .bind(user_id)
         .bind(from)
         .bind(to)
         .bind(limit)
+        .bind(offset)
         .fetch_all(self.pool)
         .await?;
 
@@ -127,20 +130,22 @@ impl<'a> ActivityRepository<'a> {
         from: DateTime<Utc>,
         to: DateTime<Utc>,
         limit: i64,
+        offset: i64,
     ) -> anyhow::Result<Vec<WebsiteLogRow>> {
         let rows = sqlx::query_as::<_, WebsiteLogRow>(
             r#"
             SELECT id, url, domain, time_spent_sec, category::text AS category, visited_at
             FROM website_logs
             WHERE user_id = $1 AND visited_at >= $2 AND visited_at < $3
-            ORDER BY visited_at DESC
-            LIMIT $4
+            ORDER BY visited_at ASC
+            LIMIT $4 OFFSET $5
             "#,
         )
         .bind(user_id)
         .bind(from)
         .bind(to)
         .bind(limit)
+        .bind(offset)
         .fetch_all(self.pool)
         .await?;
 

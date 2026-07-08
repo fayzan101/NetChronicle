@@ -1,0 +1,106 @@
+use chrono::{NaiveDate, Utc};
+use netchronicle_common::AppActivityEvent;
+use netchronicle_db::{
+    parse_category, parse_stability, ActivityRepository, NetworkRepository, SessionRepository,
+    DbPool,
+};
+use netchronicle_session_builder::{
+    NetworkObservation, SessionBuilder, SessionBuilderConfig, TrackedAppLog,
+};
+use tracing::{debug, info};
+use uuid::Uuid;
+
+pub async fn rebuild_sessions_for_day(
+    user_id: Uuid,
+    pool: &DbPool,
+    day: NaiveDate,
+) -> anyhow::Result<usize> {
+    let start = day.and_hms_opt(0, 0, 0).unwrap().and_utc();
+    let end = (day + chrono::Duration::days(1))
+        .and_hms_opt(0, 0, 0)
+        .unwrap()
+        .and_utc();
+
+    let activity = ActivityRepository::new(pool);
+    let network = NetworkRepository::new(pool);
+    let sessions_repo = SessionRepository::new(pool);
+
+    sessions_repo.clear_for_day(user_id, day).await?;
+
+    let app_rows = activity.list_app_logs(user_id, start, end, 10_000, 0).await?;
+    if app_rows.is_empty() {
+        debug!(%day, "no app logs to build sessions from");
+        return Ok(0);
+    }
+
+    let network_rows = network.list_since(user_id, start, 10_000).await?;
+    let network: Vec<NetworkObservation> = network_rows
+        .into_iter()
+        .map(|row| NetworkObservation {
+            stability: row
+                .stability
+                .as_deref()
+                .map(parse_stability)
+                .unwrap_or(netchronicle_common::NetworkStability::Stable),
+            disconnect: row.disconnect,
+            recorded_at: row.recorded_at,
+        })
+        .collect();
+
+    let tracked: Vec<TrackedAppLog> = app_rows
+        .into_iter()
+        .map(|row| TrackedAppLog {
+            log_id: row.id,
+            event: AppActivityEvent {
+                app_name: row.app_name,
+                window_title: row.window_title,
+                duration_sec: row.duration_sec as u32,
+                category: parse_category(&row.category),
+                recorded_at: row.recorded_at,
+            },
+        })
+        .collect();
+
+    let builder = SessionBuilder::new(
+        user_id,
+        SessionBuilderConfig {
+            idle_gap: std::time::Duration::from_secs(
+                std::env::var("SESSION_IDLE_GAP_SECS")
+                    .ok()
+                    .and_then(|v| v.parse().ok())
+                    .unwrap_or(300),
+            ),
+            min_session_duration: std::time::Duration::from_secs(
+                std::env::var("SESSION_MIN_DURATION_SECS")
+                    .ok()
+                    .and_then(|v| v.parse().ok())
+                    .unwrap_or(60),
+            ),
+        },
+    );
+
+    let built = builder.build_from_logs(&tracked, &network);
+    let mut count = 0usize;
+
+    for session in built {
+        let session_id = sessions_repo.insert(&session.draft).await?;
+        sessions_repo
+            .link_app_logs(session_id, &session.log_ids)
+            .await?;
+        count += 1;
+    }
+
+    info!(%day, count, "rebuilt sessions");
+    Ok(count)
+}
+
+pub async fn run_session_rebuild_loop(user_id: Uuid, pool: DbPool, interval: std::time::Duration) {
+    let mut ticker = tokio::time::interval(interval);
+    loop {
+        ticker.tick().await;
+        let today = Utc::now().date_naive();
+        if let Err(error) = rebuild_sessions_for_day(user_id, &pool, today).await {
+            tracing::warn!(%error, "session rebuild failed");
+        }
+    }
+}

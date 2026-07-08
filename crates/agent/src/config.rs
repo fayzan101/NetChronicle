@@ -10,6 +10,8 @@ pub struct AgentConfig {
     pub poll_interval: Duration,
     pub network_sample_interval: Duration,
     pub min_segment_secs: u32,
+    pub session_rebuild_interval: Duration,
+    pub ignore_apps: Vec<String>,
 }
 
 impl AgentConfig {
@@ -42,12 +44,23 @@ impl AgentConfig {
             .and_then(|s| s.parse().ok())
             .unwrap_or(3);
 
+        let session_rebuild_interval = Duration::from_secs(
+            env::var("SESSION_REBUILD_INTERVAL_SECS")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(300),
+        );
+
+        let ignore_apps = crate::ignore::ignore_list_from_env();
+
         Ok(Self {
             user_id,
             database_url,
             poll_interval,
             network_sample_interval,
             min_segment_secs,
+            session_rebuild_interval,
+            ignore_apps,
         })
     }
 }

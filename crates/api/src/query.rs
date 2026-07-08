@@ -5,6 +5,7 @@ use axum::http::request::Parts;
 use netchronicle_db::{DbPool, UserRepository};
 use uuid::Uuid;
 
+use crate::error::ApiError;
 use crate::state::AppState;
 
 #[derive(Debug, Clone, Copy)]
@@ -13,7 +14,7 @@ pub struct UserQuery {
 }
 
 impl FromRequestParts<AppState> for UserQuery {
-    type Rejection = (axum::http::StatusCode, String);
+    type Rejection = ApiError;
 
     async fn from_request_parts(
         parts: &mut Parts,
@@ -44,22 +45,8 @@ impl FromRequestParts<AppState> for UserQuery {
             .ensure_local_user()
             .await
             .map(|user_id| Self { user_id })
-            .map_err(|error| {
-                (
-                    axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-                    format!("failed to resolve user: {error}"),
-                )
-            })
+            .map_err(|error| ApiError::internal(format!("failed to resolve user: {error}")))
     }
-}
-
-pub fn day_bounds(day: chrono::NaiveDate) -> (chrono::DateTime<chrono::Utc>, chrono::DateTime<chrono::Utc>) {
-    let start = day.and_hms_opt(0, 0, 0).unwrap().and_utc();
-    let end = (day + chrono::Duration::days(1))
-        .and_hms_opt(0, 0, 0)
-        .unwrap()
-        .and_utc();
-    (start, end)
 }
 
 #[allow(dead_code)]

@@ -1,7 +1,9 @@
-//! Groups raw logs into sessions (time windows, apps, network context).
+//! Groups raw activity events into meaningful sessions.
 
 mod builder;
 mod config;
+mod network;
 
-pub use builder::SessionBuilder;
+pub use builder::{BuiltSession, NetworkObservation, SessionBuilder, TrackedAppLog};
 pub use config::SessionBuilderConfig;
+pub use network::network_stability_for_window;

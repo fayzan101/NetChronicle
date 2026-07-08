@@ -1,8 +1,9 @@
 use axum::{extract::State, routing::get, Json, Router};
-use chrono::{Duration, Utc};
 use netchronicle_db::NetworkRepository;
 use serde::Serialize;
 
+use crate::error::ApiResult;
+use crate::params::DateRangeParams;
 use crate::query::UserQuery;
 use crate::state::AppState;
 
@@ -28,22 +29,23 @@ pub fn router() -> Router<AppState> {
 async fn network_stats(
     State(state): State<AppState>,
     user: UserQuery,
-) -> Result<Json<NetworkStatsResponse>, (axum::http::StatusCode, String)> {
-    let since = Utc::now() - Duration::hours(24);
+    range: DateRangeParams,
+) -> ApiResult<Json<NetworkStatsResponse>> {
     let repo = NetworkRepository::new(&state.db);
 
     let rows = repo
-        .list_since(user.user_id, since, 500)
+        .list_since(user.user_id, range.from, range.limit)
         .await
-        .map_err(internal_error)?;
+        .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
     let stability_score = repo
-        .stability_score(user.user_id, since)
+        .stability_score(user.user_id, range.from)
         .await
-        .map_err(internal_error)?;
+        .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
 
     let samples = rows
         .into_iter()
         .rev()
+        .filter(|row| row.recorded_at < range.to)
         .map(|row| NetworkSamplePoint {
             recorded_at: row.recorded_at.to_rfc3339(),
             latency_ms: row.latency_ms,
@@ -55,11 +57,4 @@ async fn network_stats(
         samples,
         stability_score,
     }))
-}
-
-fn internal_error(error: impl std::fmt::Display) -> (axum::http::StatusCode, String) {
-    (
-        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-        error.to_string(),
-    )
 }
