@@ -161,9 +161,32 @@ List user-defined classification rules.
 }
 ```
 
+### `PUT /category-rules/{id}`
+
+Update an existing rule (same body as POST).
+
 ### `DELETE /category-rules/{id}`
 
 Delete a rule by ID.
+
+---
+
+## Browser extension bridge
+
+### `POST /browser-tab` (API)
+
+Accepts exact URL from a browser extension (alternative to agent feed on port 9477).
+
+```json
+{
+  "url": "https://github.com/user/repo",
+  "title": "GitHub"
+}
+```
+
+### `POST http://127.0.0.1:9477/browser-tab` (agent)
+
+Same payload, sent directly to the agent's local feed server for lowest latency.
 
 ---
 

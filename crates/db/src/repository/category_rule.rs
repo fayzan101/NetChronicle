@@ -55,6 +55,35 @@ impl<'a> CategoryRuleRepository<'a> {
         Ok(row)
     }
 
+    pub async fn update(
+        &self,
+        user_id: Uuid,
+        rule_id: Uuid,
+        pattern: &str,
+        pattern_type: &str,
+        category: ActivityCategory,
+        priority: i32,
+    ) -> anyhow::Result<Option<CategoryRuleRow>> {
+        let row = sqlx::query_as::<_, CategoryRuleRow>(
+            r#"
+            UPDATE category_rules
+            SET pattern = $3, pattern_type = $4, category = $5::activity_category, priority = $6
+            WHERE id = $1 AND user_id = $2
+            RETURNING id, user_id, pattern, pattern_type, category::text AS category, priority, created_at
+            "#,
+        )
+        .bind(rule_id)
+        .bind(user_id)
+        .bind(pattern)
+        .bind(pattern_type)
+        .bind(category_to_db(category))
+        .bind(priority)
+        .fetch_optional(self.pool)
+        .await?;
+
+        Ok(row)
+    }
+
     pub async fn delete(&self, user_id: Uuid, rule_id: Uuid) -> anyhow::Result<bool> {
         let result = sqlx::query(
             r#"
