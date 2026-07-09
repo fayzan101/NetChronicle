@@ -1,10 +1,10 @@
 use axum::{
     extract::{Path, State},
-    routing::{delete, get},
+    routing::{get, put},
     Json, Router,
 };
 use netchronicle_common::ActivityCategory;
-use netchronicle_db::{parse_category, CategoryRuleRepository};
+use netchronicle_db::{parse_category, ActivityRepository, CategoryRuleRepository};
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
@@ -14,12 +14,19 @@ use crate::state::AppState;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateRuleRequest {
+pub struct RuleRequest {
     pub pattern: String,
     pub pattern_type: String,
     pub category: String,
     #[serde(default)]
     pub priority: i32,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BrowserTabRequest {
+    pub url: String,
+    pub title: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -41,7 +48,8 @@ pub struct CategoryRuleItem {
 pub fn router() -> Router<AppState> {
     Router::new()
         .route("/category-rules", get(list_rules).post(create_rule))
-        .route("/category-rules/{id}", delete(delete_rule))
+        .route("/category-rules/{id}", put(update_rule).delete(delete_rule))
+        .route("/browser-tab", axum::routing::post(report_browser_tab))
 }
 
 async fn list_rules(
@@ -53,60 +61,40 @@ async fn list_rules(
         .await
         .map_err(|e| ApiError::internal(e.to_string()))?;
 
-    let rules = rows
-        .into_iter()
-        .map(|row| CategoryRuleItem {
-            id: row.id.to_string(),
-            pattern: row.pattern,
-            pattern_type: row.pattern_type,
-            category: row.category,
-            priority: row.priority,
-        })
-        .collect();
-
+    let rules = rows.into_iter().map(row_to_item).collect();
     Ok(Json(CategoryRulesResponse { rules }))
 }
 
 async fn create_rule(
     State(state): State<AppState>,
     user: UserQuery,
-    Json(body): Json<CreateRuleRequest>,
+    Json(body): Json<RuleRequest>,
 ) -> ApiResult<Json<CategoryRuleItem>> {
-    if body.pattern.trim().is_empty() {
-        return Err(ApiError::bad_request("pattern is required"));
-    }
-
-    let category = parse_category(&body.category);
-    if !matches!(
-        category,
-        ActivityCategory::Work
-            | ActivityCategory::Learning
-            | ActivityCategory::Entertainment
-            | ActivityCategory::Distraction
-            | ActivityCategory::Neutral
-            | ActivityCategory::Unknown
-    ) {
-        return Err(ApiError::bad_request("invalid category"));
-    }
+    let (pattern, pattern_type, category, priority) = validate_rule_request(&body)?;
 
     let row = CategoryRuleRepository::new(&state.db)
-        .create(
-            user.user_id,
-            body.pattern.trim(),
-            body.pattern_type.trim(),
-            category,
-            body.priority,
-        )
+        .create(user.user_id, &pattern, &pattern_type, category, priority)
         .await
         .map_err(|e| ApiError::internal(e.to_string()))?;
 
-    Ok(Json(CategoryRuleItem {
-        id: row.id.to_string(),
-        pattern: row.pattern,
-        pattern_type: row.pattern_type,
-        category: row.category,
-        priority: row.priority,
-    }))
+    Ok(Json(row_to_item(row)))
+}
+
+async fn update_rule(
+    State(state): State<AppState>,
+    user: UserQuery,
+    Path(id): Path<Uuid>,
+    Json(body): Json<RuleRequest>,
+) -> ApiResult<Json<CategoryRuleItem>> {
+    let (pattern, pattern_type, category, priority) = validate_rule_request(&body)?;
+
+    let row = CategoryRuleRepository::new(&state.db)
+        .update(user.user_id, id, &pattern, &pattern_type, category, priority)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+        .ok_or_else(|| ApiError::not_found("rule not found"))?;
+
+    Ok(Json(row_to_item(row)))
 }
 
 async fn delete_rule(
@@ -124,4 +112,55 @@ async fn delete_rule(
     }
 
     Ok(Json(serde_json::json!({ "deleted": true })))
+}
+
+async fn report_browser_tab(
+    State(state): State<AppState>,
+    user: UserQuery,
+    Json(body): Json<BrowserTabRequest>,
+) -> ApiResult<Json<serde_json::Value>> {
+    if body.url.trim().is_empty() {
+        return Err(ApiError::bad_request("url is required"));
+    }
+
+    ActivityRepository::new(&state.db)
+        .insert_raw_event(
+            user.user_id,
+            "browser_tab",
+            serde_json::json!({
+                "url": body.url,
+                "title": body.title,
+            }),
+            chrono::Utc::now(),
+        )
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?;
+
+    Ok(Json(serde_json::json!({ "accepted": true })))
+}
+
+fn validate_rule_request(
+    body: &RuleRequest,
+) -> ApiResult<(String, String, ActivityCategory, i32)> {
+    if body.pattern.trim().is_empty() {
+        return Err(ApiError::bad_request("pattern is required"));
+    }
+
+    let category = parse_category(&body.category);
+    Ok((
+        body.pattern.trim().to_string(),
+        body.pattern_type.trim().to_string(),
+        category,
+        body.priority,
+    ))
+}
+
+fn row_to_item(row: netchronicle_db::CategoryRuleRow) -> CategoryRuleItem {
+    CategoryRuleItem {
+        id: row.id.to_string(),
+        pattern: row.pattern,
+        pattern_type: row.pattern_type,
+        category: row.category,
+        priority: row.priority,
+    }
 }

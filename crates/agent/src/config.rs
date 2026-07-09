@@ -11,6 +11,9 @@ pub struct AgentConfig {
     pub network_sample_interval: Duration,
     pub min_segment_secs: u32,
     pub session_rebuild_interval: Duration,
+    pub rules_refresh_interval: Duration,
+    pub idle_threshold: Duration,
+    pub browser_feed_port: u16,
     pub ignore_apps: Vec<String>,
 }
 
@@ -51,6 +54,25 @@ impl AgentConfig {
                 .unwrap_or(300),
         );
 
+        let rules_refresh_interval = Duration::from_secs(
+            env::var("RULES_REFRESH_INTERVAL_SECS")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(60),
+        );
+
+        let idle_threshold = Duration::from_secs(
+            env::var("AGENT_IDLE_THRESHOLD_SECS")
+                .ok()
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(300),
+        );
+
+        let browser_feed_port = env::var("AGENT_BROWSER_FEED_PORT")
+            .ok()
+            .and_then(|s| s.parse().ok())
+            .unwrap_or(9477);
+
         let ignore_apps = crate::ignore::ignore_list_from_env();
 
         Ok(Self {
@@ -60,6 +82,9 @@ impl AgentConfig {
             network_sample_interval,
             min_segment_secs,
             session_rebuild_interval,
+            rules_refresh_interval,
+            idle_threshold,
+            browser_feed_port,
             ignore_apps,
         })
     }

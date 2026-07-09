@@ -62,6 +62,9 @@ API: `http://127.0.0.1:8080`
 | `SESSION_REBUILD_INTERVAL_SECS` | `300` | Session builder interval |
 | `SESSION_IDLE_GAP_SECS` | `300` | Idle gap between sessions |
 | `SESSION_MIN_DURATION_SECS` | `60` | Minimum session length |
+| `AGENT_IDLE_THRESHOLD_SECS` | `300` | Pause tracking after this many idle seconds |
+| `AGENT_BROWSER_FEED_PORT` | `9477` | Local HTTP port for browser extension tab feed |
+| `RULES_REFRESH_INTERVAL_SECS` | `60` | How often the agent reloads category rules from DB |
 | `DEFAULT_USER_ID` | — | API default user UUID |
 
 ## API overview
@@ -78,7 +81,8 @@ See [docs/api.md](docs/api.md) for full endpoint documentation.
 | `GET /live-status` | Current activity snapshot |
 | `GET /network-stats` | Network samples |
 | `GET /insights` | Rule-based insights |
-| `GET/POST/DELETE /category-rules` | Category rule CRUD |
+| `GET/POST/PUT/DELETE /category-rules` | Category rule CRUD |
+| `POST /browser-tab` | Report active browser tab URL (extension fallback) |
 
 Common query params: `?date=YYYY-MM-DD`, `?from=`, `?to=`, `?limit=`, `?offset=`, `?user_id=`
 

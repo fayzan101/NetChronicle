@@ -1,10 +1,13 @@
 //! NetChronicle background agent — collects app/site/network activity.
 
 mod browser;
+mod browser_feed;
 mod collector;
 mod config;
 mod db_retry;
+mod idle;
 mod ignore;
+mod rules_cache;
 mod session_job;
 mod tracker;
 mod window;

@@ -171,4 +171,24 @@ impl<'a> ActivityRepository<'a> {
 
         Ok(row)
     }
+
+    pub async fn latest_browser_tab(
+        &self,
+        user_id: Uuid,
+    ) -> anyhow::Result<Option<crate::models::ActivitySnapshotRow>> {
+        let row = sqlx::query_as::<_, crate::models::ActivitySnapshotRow>(
+            r#"
+            SELECT payload, recorded_at
+            FROM raw_events
+            WHERE user_id = $1 AND event_type = 'browser_tab'
+            ORDER BY recorded_at DESC
+            LIMIT 1
+            "#,
+        )
+        .bind(user_id)
+        .fetch_optional(self.pool)
+        .await?;
+
+        Ok(row)
+    }
 }
