@@ -302,10 +302,10 @@ pub async fn run_network_sampler(
     interval: std::time::Duration,
 ) {
     use netchronicle_db::NetworkRepository;
-    use netchronicle_network_monitor::{NetworkProbe, TcpProbe};
+    use netchronicle_network_monitor::{CompositeProbe, NetworkProbe};
     use tracing::warn;
 
-    let probe = TcpProbe::default();
+    let probe = CompositeProbe::from_env();
     let mut ticker = tokio::time::interval(interval);
 
     loop {

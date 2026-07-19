@@ -12,3 +12,4 @@ tracing = { workspace = true }
 uuid = { workspace = true }
 
 netchronicle-common = { workspace = true }
+netchronicle-network-monitor = { workspace = true }

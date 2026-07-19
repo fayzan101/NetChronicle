@@ -126,13 +126,59 @@ Merged app and website activity for a day.
 
 ## Live & network
 
+### `GET /network-stats`
+
+Network samples and aggregations for the requested time range.
+
+Query: `?date=YYYY-MM-DD` or `?from=&to=` plus optional `limit`.
+
+```json
+{
+  "samples": [
+    {
+      "recordedAt": "2026-07-20T10:00:00Z",
+      "latencyMs": 24.5,
+      "packetLossPct": 0.0,
+      "bandwidthMbps": null,
+      "stability": "stable",
+      "disconnect": false
+    }
+  ],
+  "aggregation": {
+    "sampleCount": 120,
+    "avgLatencyMs": 28.4,
+    "p95LatencyMs": 72.0,
+    "avgPacketLossPct": 1.2,
+    "avgBandwidthMbps": null,
+    "disconnectCount": 2
+  },
+  "stabilityScore": 94.5
+}
+```
+
+### `GET /network-events`
+
+Disconnects and spike windows (latency ≥ 200ms or loss ≥ 15%).
+
+```json
+{
+  "events": [
+    {
+      "recordedAt": "2026-07-20T10:15:00Z",
+      "kind": "disconnect",
+      "latencyMs": null,
+      "packetLossPct": 100.0,
+      "bandwidthMbps": null,
+      "stability": "offline",
+      "disconnect": true
+    }
+  ]
+}
+```
+
 ### `GET /live-status`
 
 Current activity from latest agent snapshot (within 60 seconds).
-
-### `GET /network-stats`
-
-Network samples for the requested time range.
 
 ---
 

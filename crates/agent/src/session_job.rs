@@ -36,6 +36,7 @@ pub async fn rebuild_sessions_for_day(
     let network_rows = network.list_since(user_id, start, 10_000).await?;
     let network: Vec<NetworkObservation> = network_rows
         .into_iter()
+        .filter(|row| row.recorded_at < end)
         .map(|row| NetworkObservation {
             stability: row
                 .stability
@@ -43,6 +44,8 @@ pub async fn rebuild_sessions_for_day(
                 .map(parse_stability)
                 .unwrap_or(netchronicle_common::NetworkStability::Stable),
             disconnect: row.disconnect,
+            latency_ms: row.latency_ms,
+            packet_loss_pct: row.packet_loss_pct,
             recorded_at: row.recorded_at,
         })
         .collect();
