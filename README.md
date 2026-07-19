@@ -59,6 +59,12 @@ API: `http://127.0.0.1:8080`
 | `AGENT_MIN_SEGMENT_SECS` | `3` | Min activity segment to persist |
 | `AGENT_IGNORE_APPS` | — | Comma-separated apps/titles to skip |
 | `NETWORK_SAMPLE_INTERVAL_SECS` | `30` | Network probe interval |
+| `NETWORK_PROBE_HOST` | `8.8.8.8` | ICMP / connectivity probe host |
+| `NETWORK_PROBE_TCP_PORT` | `53` | TCP fallback port when ping fails |
+| `NETWORK_PING_COUNT` | `4` | Echo requests per sample |
+| `NETWORK_BANDWIDTH_ENABLED` | `false` | Enable HTTP bandwidth estimate |
+| `NETWORK_BANDWIDTH_URL` | Cloudflare speed URL | Download URL for bandwidth probe |
+| `NETWORK_BANDWIDTH_BYTES` | `100000` | Max bytes to download per bandwidth sample |
 | `SESSION_REBUILD_INTERVAL_SECS` | `300` | Session builder interval |
 | `SESSION_IDLE_GAP_SECS` | `300` | Idle gap between sessions |
 | `SESSION_MIN_DURATION_SECS` | `60` | Minimum session length |
@@ -79,7 +85,8 @@ See [docs/api.md](docs/api.md) for full endpoint documentation.
 | `GET /daily-report` | Daily productivity summary |
 | `GET /weekly-report` | Weekly summary (cached) |
 | `GET /live-status` | Current activity snapshot |
-| `GET /network-stats` | Network samples |
+| `GET /network-stats` | Network samples + avg/p95 aggregations |
+| `GET /network-events` | Disconnects and latency/loss spikes |
 | `GET /insights` | Rule-based insights |
 | `GET/POST/PUT/DELETE /category-rules` | Category rule CRUD |
 | `POST /browser-tab` | Report active browser tab URL (extension fallback) |
@@ -98,6 +105,14 @@ Common query params: `?date=YYYY-MM-DD`, `?from=`, `?to=`, `?limit=`, `?offset=`
 | `categorization` | Activity labeling |
 | `network-monitor` | Network probes |
 | `common` | Shared types |
+
+## Docs
+
+| Doc | Description |
+|-----|-------------|
+| [Implementation plan](docs/implementation-plan.md) | Phase-wise remaining work |
+| [API](docs/api.md) | REST endpoint reference |
+| [Architecture](docs/architecture.md) | System overview |
 
 ## Tests
 

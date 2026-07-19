@@ -17,6 +17,8 @@ pub struct TrackedAppLog {
 pub struct NetworkObservation {
     pub stability: NetworkStability,
     pub disconnect: bool,
+    pub latency_ms: Option<f32>,
+    pub packet_loss_pct: Option<f32>,
     pub recorded_at: DateTime<Utc>,
 }
 
@@ -139,8 +141,7 @@ impl SessionBuilder {
             None
         };
 
-        let network_stability =
-            network_stability_for_window(network, first_start, last_end);
+        let network_stability = network_stability_for_window(network, first_start, last_end);
 
         let log_ids = group.iter().map(|log| log.log_id).collect();
 
@@ -152,7 +153,7 @@ impl SessionBuilder {
                 primary_apps,
                 category,
                 productivity_score,
-                network_stability: Some(network_stability),
+                network_stability,
             },
             log_ids,
         })

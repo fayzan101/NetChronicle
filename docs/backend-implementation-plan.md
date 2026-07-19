@@ -1,14 +1,16 @@
-# NetChronicle — Backend Implementation Plan
+# NetChronicle — Backend Implementation Plan (archived)
 
-> **Scope:** Rust backend only (agent, processing, database, API). Frontend is out of scope for now.
+> **Superseded.** Use [`docs/implementation-plan.md`](./implementation-plan.md) for the current phase-wise plan.
+>
+> This file is kept for historical Phase 0–3 task detail. Baseline tables below are **stale** (written mid-sync); Phases 1–3 are largely complete on `main` as of July 2026.
 
-**Last reviewed:** July 2026 (post-sync)
+**Last reviewed:** July 2026 (post-sync) — status outdated; see new plan.
 
 ---
 
-## Current baseline (Phase 0 — done)
+## Current baseline (Phase 0 — historical snapshot)
 
-What exists today after sync:
+> Snapshot from early sync — **do not treat as current status.**
 
 | Component | Status | Notes |
 |-----------|--------|-------|
@@ -25,7 +27,7 @@ What exists today after sync:
 | Auth | 0% | Single local user auto-created |
 | Frontend | 0% | Intentionally deferred |
 
-**Overall backend score: 5.5 / 10** — working MVP pipeline, not production-ready.
+**Overall backend score at snapshot: 5.5 / 10** — superseded by shipped Phase 1–3 work.
 
 ### Working data flow today
 
@@ -283,7 +285,7 @@ Phase 6  →   Workers + tests + CI + reports
 Phase 7  ○   Optional advanced features
 ```
 
-**Recommended next step:** Phase 1 — low risk, high payoff before adding new crates.
+**Recommended next step:** See [`implementation-plan.md`](./implementation-plan.md) — start at **Phase 4 (real network metrics)**.
 
 ---
 

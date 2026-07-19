@@ -1,4 +1,5 @@
 use chrono::NaiveDate;
+use chrono::Timelike;
 use netchronicle_common::{ActivityCategory, DailySummary, Session};
 use serde::Serialize;
 
@@ -209,6 +210,43 @@ impl AnalyticsEngine {
             });
         }
 
+        // Richer network ↔ focus correlation
+        let degraded_focus: Vec<_> = sessions
+            .iter()
+            .filter(|s| {
+                matches!(
+                    s.category,
+                    ActivityCategory::Work | ActivityCategory::Learning
+                ) && matches!(
+                    s.network_stability,
+                    Some(netchronicle_common::NetworkStability::Degraded)
+                        | Some(netchronicle_common::NetworkStability::Unstable)
+                        | Some(netchronicle_common::NetworkStability::Offline)
+                )
+            })
+            .collect();
+
+        if let Some(session) = degraded_focus.first() {
+            let label = match session.network_stability {
+                Some(netchronicle_common::NetworkStability::Offline) => "offline",
+                Some(netchronicle_common::NetworkStability::Unstable) => "unstable",
+                _ => "degraded",
+            };
+            let hour = session.start_time.hour();
+            let apps = if session.primary_apps.is_empty() {
+                "a focus session".to_string()
+            } else {
+                session.primary_apps[0].clone()
+            };
+            insights.push(Insight {
+                title: "Network hurt focus time".into(),
+                body: format!(
+                    "Network was {label} during your {apps} session around {hour:02}:00 — quality may have reduced productivity."
+                ),
+                severity: crate::InsightSeverity::Warning,
+            });
+        }
+
         insights
     }
 }
@@ -253,5 +291,26 @@ mod tests {
 
         assert_eq!(summary.total_online_minutes, 30);
         assert_eq!(summary.focus_minutes, 30);
+    }
+
+    #[test]
+    fn network_focus_insight() {
+        let start = Utc.with_ymd_and_hms(2026, 1, 1, 14, 0, 0).unwrap();
+        let sessions = vec![Session {
+            session_id: Uuid::new_v4(),
+            user_id: Uuid::new_v4(),
+            start_time: start,
+            end_time: Some(start + chrono::Duration::minutes(45)),
+            category: ActivityCategory::Work,
+            productivity_score: Some(80.0),
+            network_stability: Some(netchronicle_common::NetworkStability::Unstable),
+            primary_apps: vec!["Code".into()],
+        }];
+
+        let insights = AnalyticsEngine::generate_insights(&sessions, &[], &[]);
+        assert!(insights.iter().any(|i| i.title.contains("Network hurt focus")));
+        assert!(insights
+            .iter()
+            .any(|i| i.body.contains("14:00") && i.body.contains("Code")));
     }
 }
