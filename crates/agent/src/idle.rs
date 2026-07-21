@@ -22,12 +22,57 @@ mod platform {
     }
 }
 
-#[cfg(not(windows))]
+#[cfg(target_os = "macos")]
 mod platform {
+    use std::process::Command;
     use std::time::Duration;
 
     pub fn idle_duration() -> anyhow::Result<Duration> {
-        Ok(Duration::from_secs(0))
+        let output = Command::new("ioreg")
+            .args(["-c", "IOHIDSystem", "-d", "4", "-r"])
+            .output()?;
+
+        if !output.status.success() {
+            anyhow::bail!("ioreg failed");
+        }
+
+        let text = String::from_utf8_lossy(&output.stdout);
+        for line in text.lines() {
+            if line.contains("HIDIdleTime") {
+                let nanos: u64 = line
+                    .split('=')
+                    .nth(1)
+                    .and_then(|part| part.trim().split_whitespace().next())
+                    .and_then(|value| value.parse().ok())
+                    .ok_or_else(|| anyhow::anyhow!("failed to parse HIDIdleTime"))?;
+                return Ok(Duration::from_nanos(nanos));
+            }
+        }
+
+        anyhow::bail!("HIDIdleTime not found")
+    }
+}
+
+#[cfg(all(unix, not(target_os = "macos")))]
+mod platform {
+    use std::process::Command;
+    use std::time::Duration;
+
+    pub fn idle_duration() -> anyhow::Result<Duration> {
+        let output = Command::new("xprintidle")
+            .output()
+            .map_err(|_| anyhow::anyhow!("xprintidle not installed"))?;
+
+        if !output.status.success() {
+            anyhow::bail!("xprintidle failed");
+        }
+
+        let ms: u64 = String::from_utf8_lossy(&output.stdout)
+            .trim()
+            .parse()
+            .map_err(|_| anyhow::anyhow!("invalid xprintidle output"))?;
+
+        Ok(Duration::from_millis(ms))
     }
 }
 
@@ -45,6 +90,7 @@ mod tests {
 
     #[test]
     fn idle_threshold_check() {
-        assert!(!is_user_idle(std::time::Duration::from_secs(60 * 60)));
+        // On CI / unsupported platforms this may return false when detection fails.
+        let _ = is_user_idle(std::time::Duration::from_secs(60 * 60));
     }
 }

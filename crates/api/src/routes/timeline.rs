@@ -15,6 +15,8 @@ pub struct TimelineEntry {
     pub category: String,
     pub source: String,
     pub duration_sec: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub session_id: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -56,6 +58,7 @@ async fn timeline(
             category: row.category,
             source: "app".into(),
             duration_sec: row.duration_sec,
+            session_id: row.session_id.map(|id| id.to_string()),
         });
     }
 
@@ -67,6 +70,7 @@ async fn timeline(
             category: row.category,
             source: "website".into(),
             duration_sec: row.time_spent_sec,
+            session_id: row.session_id.map(|id| id.to_string()),
         });
     }
 

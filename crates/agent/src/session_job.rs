@@ -10,6 +10,20 @@ use netchronicle_session_builder::{
 use tracing::{debug, info};
 use uuid::Uuid;
 
+pub fn session_rebuild_lookback_days() -> i64 {
+    std::env::var("SESSION_REBUILD_LOOKBACK_DAYS")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(2)
+        .clamp(1, 14)
+}
+
+pub fn rebuild_days_from(today: NaiveDate, lookback_days: i64) -> Vec<NaiveDate> {
+    (0..lookback_days)
+        .map(|offset| today - chrono::Duration::days(offset))
+        .collect()
+}
+
 pub async fn rebuild_sessions_for_day(
     user_id: Uuid,
     pool: &DbPool,
@@ -90,6 +104,19 @@ pub async fn rebuild_sessions_for_day(
         sessions_repo
             .link_app_logs(session_id, &session.log_ids)
             .await?;
+
+        if let Some(end_time) = session.draft.end_time {
+            let linked = sessions_repo
+                .link_website_logs_in_window(
+                    session_id,
+                    user_id,
+                    session.draft.start_time,
+                    end_time,
+                )
+                .await?;
+            debug!(%session_id, linked, "linked website logs to session");
+        }
+
         count += 1;
     }
 
@@ -97,13 +124,46 @@ pub async fn rebuild_sessions_for_day(
     Ok(count)
 }
 
+pub async fn rebuild_sessions_for_lookback(
+    user_id: Uuid,
+    pool: &DbPool,
+    today: NaiveDate,
+) -> anyhow::Result<usize> {
+    let lookback = session_rebuild_lookback_days();
+    let days = rebuild_days_from(today, lookback);
+    let mut total = 0usize;
+
+    // Rebuild oldest day first so later days do not steal website rows.
+    for day in days.into_iter().rev() {
+        total += rebuild_sessions_for_day(user_id, pool, day).await?;
+    }
+
+    info!(lookback, total, "session rebuild lookback complete");
+    Ok(total)
+}
+
 pub async fn run_session_rebuild_loop(user_id: Uuid, pool: DbPool, interval: std::time::Duration) {
     let mut ticker = tokio::time::interval(interval);
     loop {
         ticker.tick().await;
         let today = Utc::now().date_naive();
-        if let Err(error) = rebuild_sessions_for_day(user_id, &pool, today).await {
+        if let Err(error) = rebuild_sessions_for_lookback(user_id, &pool, today).await {
             tracing::warn!(%error, "session rebuild failed");
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::NaiveDate;
+
+    #[test]
+    fn lookback_includes_today_and_yesterday() {
+        let today = NaiveDate::from_ymd_opt(2026, 7, 21).unwrap();
+        let days = rebuild_days_from(today, 2);
+        assert_eq!(days.len(), 2);
+        assert_eq!(days[0], today);
+        assert_eq!(days[1], today - chrono::Duration::days(1));
     }
 }

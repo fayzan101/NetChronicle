@@ -54,13 +54,23 @@ Query: `date`, `from`, `to`, `limit`, `offset`
       "category": "work",
       "productivityScore": 85.0,
       "primaryApps": ["Code"],
-      "networkStability": "stable"
+      "networkStability": "stable",
+      "websites": [
+        {
+          "domain": "github.com",
+          "url": "https://github.com/user/repo",
+          "timeSpentSec": 900,
+          "category": "work"
+        }
+      ]
     }
   ],
   "limit": 100,
   "offset": 0
 }
 ```
+
+Timeline and session entries include `sessionId` when logs are linked after rebuild.
 
 ---
 
@@ -79,7 +89,8 @@ Merged app and website activity for a day.
       "label": "github.com",
       "category": "work",
       "source": "website",
-      "durationSec": 120
+      "durationSec": 120,
+      "sessionId": "uuid"
     }
   ]
 }

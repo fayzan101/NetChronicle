@@ -47,6 +47,8 @@ impl BrowserFeed {
 pub struct BrowserTabPayload {
     pub url: String,
     pub title: Option<String>,
+    pub tab_id: Option<i64>,
+    pub active: Option<bool>,
 }
 
 pub async fn run_browser_feed_server(feed: BrowserFeed, port: u16) -> anyhow::Result<()> {
@@ -67,11 +69,18 @@ async fn handle_browser_tab(
     axum::extract::State(feed): axum::extract::State<BrowserFeed>,
     axum::Json(payload): axum::Json<BrowserTabPayload>,
 ) -> &'static str {
+    if payload.active == Some(false) {
+        return "ok";
+    }
+
     if !payload.url.trim().is_empty() {
-        tracing::debug!(url = %payload.url, at = %Utc::now(), "browser tab reported");
-        feed
-            .update(payload.url, payload.title)
-            .await;
+        tracing::debug!(
+            url = %payload.url,
+            tab_id = ?payload.tab_id,
+            at = %Utc::now(),
+            "browser tab reported"
+        );
+        feed.update(payload.url, payload.title).await;
     }
     "ok"
 }

@@ -141,4 +141,50 @@ impl<'a> SessionRepository<'a> {
 
         Ok(())
     }
+
+    pub async fn link_website_logs_in_window(
+        &self,
+        session_id: Uuid,
+        user_id: Uuid,
+        start: DateTime<Utc>,
+        end: DateTime<Utc>,
+    ) -> anyhow::Result<u64> {
+        let result = sqlx::query(
+            r#"
+            UPDATE website_logs
+            SET session_id = $1
+            WHERE user_id = $2
+              AND visited_at >= $3
+              AND visited_at <= $4
+              AND (session_id IS NULL OR session_id = $1)
+            "#,
+        )
+        .bind(session_id)
+        .bind(user_id)
+        .bind(start)
+        .bind(end)
+        .execute(self.pool)
+        .await?;
+
+        Ok(result.rows_affected())
+    }
+
+    pub async fn list_website_logs_for_session(
+        &self,
+        session_id: Uuid,
+    ) -> anyhow::Result<Vec<crate::models::WebsiteLogRow>> {
+        let rows = sqlx::query_as::<_, crate::models::WebsiteLogRow>(
+            r#"
+            SELECT id, url, domain, time_spent_sec, category::text AS category, visited_at, session_id
+            FROM website_logs
+            WHERE session_id = $1
+            ORDER BY visited_at ASC
+            "#,
+        )
+        .bind(session_id)
+        .fetch_all(self.pool)
+        .await?;
+
+        Ok(rows)
+    }
 }

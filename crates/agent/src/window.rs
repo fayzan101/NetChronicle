@@ -44,13 +44,46 @@ pub fn friendly_name_from_process(exec_name: &str, process_path: &str) -> String
         "opera" => "Opera",
         "vivaldi" => "Vivaldi",
         "explorer" => "File Explorer",
-        "windowsterminal" => "Windows Terminal",
+        "windowsterminal" | "wt" => "Windows Terminal",
         "powershell" => "PowerShell",
+        "pwsh" => "PowerShell",
         "cmd" => "Command Prompt",
         "discord" => "Discord",
         "slack" => "Slack",
         "teams" => "Microsoft Teams",
         "spotify" => "Spotify",
+        "notion" => "Notion",
+        "obsidian" => "Obsidian",
+        "figma" => "Figma",
+        "postman" => "Postman",
+        "docker desktop" | "docker" => "Docker Desktop",
+        "cursor" => "Cursor",
+        "winword" => "Microsoft Word",
+        "excel" => "Microsoft Excel",
+        "powerpnt" => "Microsoft PowerPoint",
+        "outlook" => "Microsoft Outlook",
+        "onenote" => "OneNote",
+        "zoom" => "Zoom",
+        "telegram" => "Telegram",
+        "whatsapp" => "WhatsApp",
+        "steam" => "Steam",
+        "vlc" => "VLC",
+        "itunes" => "Apple Music",
+        "music" => "Apple Music",
+        "safari" => "Safari",
+        "finder" => "Finder",
+        "terminal" => "Terminal",
+        "iTerm2" | "iterm2" => "iTerm",
+        "idea64" | "idea" => "IntelliJ IDEA",
+        "pycharm64" | "pycharm" => "PyCharm",
+        "webstorm64" | "webstorm" => "WebStorm",
+        "goland64" | "goland" => "GoLand",
+        "clion64" | "clion" => "CLion",
+        "rider64" | "rider" => "Rider",
+        "datagrip64" | "datagrip" => "DataGrip",
+        "sublime_text" => "Sublime Text",
+        "notepad++" => "Notepad++",
+        "notepad" => "Notepad",
         _ => file_name,
     };
 
@@ -66,6 +99,14 @@ mod tests {
         assert_eq!(
             friendly_name_from_process("Code.exe", r"C:\Program Files\Code\Code.exe"),
             "Visual Studio Code"
+        );
+        assert_eq!(
+            friendly_name_from_process("cursor.exe", r"C:\Users\me\AppData\Local\Programs\cursor\Cursor.exe"),
+            "Cursor"
+        );
+        assert_eq!(
+            friendly_name_from_process("notion.exe", r"C:\Users\me\AppData\Local\Programs\Notion\Notion.exe"),
+            "Notion"
         );
     }
 }
