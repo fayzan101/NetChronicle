@@ -134,7 +134,7 @@ impl<'a> ActivityRepository<'a> {
     ) -> anyhow::Result<Vec<WebsiteLogRow>> {
         let rows = sqlx::query_as::<_, WebsiteLogRow>(
             r#"
-            SELECT id, url, domain, time_spent_sec, category::text AS category, visited_at
+            SELECT id, url, domain, time_spent_sec, category::text AS category, visited_at, session_id
             FROM website_logs
             WHERE user_id = $1 AND visited_at >= $2 AND visited_at < $3
             ORDER BY visited_at ASC

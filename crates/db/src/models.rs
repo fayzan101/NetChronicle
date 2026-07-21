@@ -22,6 +22,8 @@ pub struct WebsiteLogRow {
     pub time_spent_sec: i32,
     pub category: String,
     pub visited_at: DateTime<Utc>,
+    #[sqlx(default)]
+    pub session_id: Option<Uuid>,
 }
 
 #[derive(Debug, Clone, sqlx::FromRow)]

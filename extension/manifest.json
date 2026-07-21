@@ -1,0 +1,11 @@
+{
+  "manifest_version": 3,
+  "name": "NetChronicle Browser Feed",
+  "version": "1.0.0",
+  "description": "Reports the active browser tab URL to the local NetChronicle agent for accurate website tracking.",
+  "permissions": ["tabs", "activeTab"],
+  "host_permissions": ["http://127.0.0.1:9477/*"],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

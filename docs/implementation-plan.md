@@ -15,8 +15,8 @@
 | 2 | Sessions & analytics | ✅ Done (with known gaps) |
 | 3 | Tracking & categorization | ✅ Mostly done (extension missing) |
 | **4** | **Real network metrics** | ✅ Done (this branch) |
-| **5** | **Tracking completeness** | ⬜ Planned |
-| **6** | **Workers, reports & hardening** | ⬜ Planned |
+| **5** | **Tracking completeness** | ✅ Done (this branch) |
+| **6** | **Workers, reports & hardening** | ⬜ Next |
 | **7** | **Auth, settings & privacy** | ⬜ Planned |
 | **8** | **Dashboard (Next.js)** | ⬜ Planned |
 | **9** | **Optional extensions** | ○ Later |
@@ -123,12 +123,20 @@ These are folded into Phases 5–6 rather than reopening 2–3:
    - Expand friendly-name map for common apps
    - Optional: store process path / icon hash in `raw_events`
 
+**Recommended next step:** Phase 6 — worker, CI, richer reports.
+
+---
+
+## Phase 5 — Tracking completeness ✅
+
+**Branch:** `feature/phase-5-tracking`
+
 ### Exit criteria
 
-- [ ] Top browsers report exact domain/URL via extension when installed
-- [ ] Website logs appear under the correct session in `/timeline` and `/sessions`
-- [ ] Historical lookback rebuild works for at least 2 days
-- [ ] Extension + agent feed documented
+- [x] Top browsers report exact domain/URL via extension when installed
+- [x] Website logs appear under the correct session in `/timeline` and `/sessions`
+- [x] Historical lookback rebuild works for at least 2 days
+- [x] Extension + agent feed documented
 
 ---
 

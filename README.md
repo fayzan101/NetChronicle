@@ -66,6 +66,7 @@ API: `http://127.0.0.1:8080`
 | `NETWORK_BANDWIDTH_URL` | Cloudflare speed URL | Download URL for bandwidth probe |
 | `NETWORK_BANDWIDTH_BYTES` | `100000` | Max bytes to download per bandwidth sample |
 | `SESSION_REBUILD_INTERVAL_SECS` | `300` | Session builder interval |
+| `SESSION_REBUILD_LOOKBACK_DAYS` | `2` | Days to rebuild (today + yesterday) |
 | `SESSION_IDLE_GAP_SECS` | `300` | Idle gap between sessions |
 | `SESSION_MIN_DURATION_SECS` | `60` | Minimum session length |
 | `AGENT_IDLE_THRESHOLD_SECS` | `300` | Pause tracking after this many idle seconds |
@@ -92,6 +93,12 @@ See [docs/api.md](docs/api.md) for full endpoint documentation.
 | `POST /browser-tab` | Report active browser tab URL (extension fallback) |
 
 Common query params: `?date=YYYY-MM-DD`, `?from=`, `?to=`, `?limit=`, `?offset=`, `?user_id=`
+
+## Browser extension
+
+Install the unpacked Chrome/Edge extension from [`extension/`](extension/) so the agent receives exact tab URLs (see [extension/README.md](extension/README.md)).
+
+**Linux idle detection:** install `xprintidle` (`sudo apt install xprintidle`) so AFK pauses tracking. macOS uses `ioreg`; Windows uses `GetLastInputInfo`.
 
 ## Crates
 
