@@ -1,6 +1,8 @@
 use axum::{extract::State, routing::get, Json, Router};
 use netchronicle_analytics::{AnalyticsEngine, DailyAnalyticsInput};
-use netchronicle_db::{session_row_to_common, NetworkRepository, ReportRepository, SessionRepository};
+use netchronicle_db::{
+    session_row_to_common, NetworkRepository, ReportRepository, SessionRepository,
+};
 use serde::Serialize;
 
 use crate::error::ApiResult;
@@ -54,7 +56,10 @@ async fn daily_report(
         .list(user.user_id, from, to, 1000, 0)
         .await
         .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
-    let sessions: Vec<_> = session_rows.into_iter().map(session_row_to_common).collect();
+    let sessions: Vec<_> = session_rows
+        .into_iter()
+        .map(session_row_to_common)
+        .collect();
 
     let network_score = NetworkRepository::new(&state.db)
         .stability_score(user.user_id, from)
@@ -63,7 +68,7 @@ async fn daily_report(
 
     let summary = AnalyticsEngine::daily_summary(&DailyAnalyticsInput {
         date: day,
-        sessions,
+        sessions: sessions.clone(),
         network_health_score: network_score,
     });
 
@@ -72,7 +77,9 @@ async fn daily_report(
         "totalOnlineMinutes": summary.total_online_minutes,
         "networkHealthScore": summary.network_health_score,
         "distractionRatio": summary.distraction_ratio,
+        "distractionImpactPct": AnalyticsEngine::distraction_impact_pct(&sessions),
         "focusMinutes": summary.focus_minutes,
+        "timeOfDay": AnalyticsEngine::time_of_day_patterns(&sessions),
     });
     reports
         .upsert(user.user_id, "daily", day, day, payload)

@@ -5,5 +5,7 @@ mod event;
 mod session;
 
 pub use error::{Error, Result};
-pub use event::{ActivityCategory, AppActivityEvent, NetworkStability, RawEvent, WebsiteVisitEvent};
+pub use event::{
+    ActivityCategory, AppActivityEvent, NetworkStability, RawEvent, WebsiteVisitEvent,
+};
 pub use session::{DailySummary, Session, SessionDraft};

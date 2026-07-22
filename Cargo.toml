@@ -9,6 +9,7 @@ members = [
     "crates/analytics",
     "crates/agent",
     "crates/api",
+    "crates/worker",
 ]
 
 [workspace.package]
@@ -43,3 +44,4 @@ netchronicle-session-builder = { path = "crates/session-builder" }
 netchronicle-categorization = { path = "crates/categorization" }
 netchronicle-analytics = { path = "crates/analytics" }
 netchronicle-agent = { path = "crates/agent" }
+netchronicle-worker = { path = "crates/worker" }

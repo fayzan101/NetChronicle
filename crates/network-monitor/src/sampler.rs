@@ -33,6 +33,9 @@ impl<P: NetworkProbe> NetworkSampler<P> {
 
 impl<P: NetworkProbe> NetworkSampler<P> {
     pub fn log_config(&self) {
-        info!(interval_secs = self.interval.as_secs(), "network sampler configured");
+        info!(
+            interval_secs = self.interval.as_secs(),
+            "network sampler configured"
+        );
     }
 }

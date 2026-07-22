@@ -4,6 +4,6 @@ mod engine;
 mod insight;
 
 pub use engine::{
-    AnalyticsEngine, CategoryMinutes, DailyAnalyticsInput, WeeklySummary,
+    AnalyticsEngine, CategoryMinutes, DailyAnalyticsInput, HourBucket, PeriodSummary, WeeklySummary,
 };
 pub use insight::{Insight, InsightSeverity};

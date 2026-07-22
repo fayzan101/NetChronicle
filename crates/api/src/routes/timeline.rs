@@ -38,11 +38,23 @@ async fn timeline(
     let activity = ActivityRepository::new(&state.db);
 
     let apps = activity
-        .list_app_logs(user.user_id, range.from, range.to, range.limit, range.offset)
+        .list_app_logs(
+            user.user_id,
+            range.from,
+            range.to,
+            range.limit,
+            range.offset,
+        )
         .await
         .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
     let sites = activity
-        .list_website_logs(user.user_id, range.from, range.to, range.limit, range.offset)
+        .list_website_logs(
+            user.user_id,
+            range.from,
+            range.to,
+            range.limit,
+            range.offset,
+        )
         .await
         .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
 
@@ -52,9 +64,7 @@ async fn timeline(
         let start = row.recorded_at - chrono::Duration::seconds(row.duration_sec as i64);
         entries.push(TimelineEntry {
             time: start.to_rfc3339(),
-            label: row
-                .window_title
-                .unwrap_or_else(|| row.app_name.clone()),
+            label: row.window_title.unwrap_or_else(|| row.app_name.clone()),
             category: row.category,
             source: "app".into(),
             duration_sec: row.duration_sec,

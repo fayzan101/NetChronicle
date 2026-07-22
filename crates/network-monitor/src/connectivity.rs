@@ -22,5 +22,8 @@ pub async fn has_basic_connectivity(host: &str, tcp_port: u16) -> bool {
     false
 }
 async fn tcp_connect(addr: SocketAddr) -> bool {
-    matches!(timeout(CHECK_TIMEOUT, TcpStream::connect(addr)).await, Ok(Ok(_)))
+    matches!(
+        timeout(CHECK_TIMEOUT, TcpStream::connect(addr)).await,
+        Ok(Ok(_))
+    )
 }

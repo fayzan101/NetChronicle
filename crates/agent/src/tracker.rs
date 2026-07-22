@@ -92,10 +92,7 @@ impl ActivityTracker {
         Ok(())
     }
 
-    async fn resolve_browser_context(
-        &self,
-        window: &ForegroundWindow,
-    ) -> Option<BrowserContext> {
+    async fn resolve_browser_context(&self, window: &ForegroundWindow) -> Option<BrowserContext> {
         if !is_browser(&window.app_name) {
             return None;
         }
@@ -145,9 +142,9 @@ impl ActivityTracker {
     }
 
     async fn maybe_heartbeat(&mut self) -> anyhow::Result<()> {
-        let should_publish = self.last_heartbeat.is_none_or(|last| {
-            Utc::now().signed_duration_since(last).num_seconds() >= 10
-        });
+        let should_publish = self
+            .last_heartbeat
+            .is_none_or(|last| Utc::now().signed_duration_since(last).num_seconds() >= 10);
 
         if should_publish {
             self.publish_snapshot(true).await?;
@@ -296,11 +293,7 @@ impl ActivityTracker {
     }
 }
 
-pub async fn run_network_sampler(
-    user_id: Uuid,
-    pool: DbPool,
-    interval: std::time::Duration,
-) {
+pub async fn run_network_sampler(user_id: Uuid, pool: DbPool, interval: std::time::Duration) {
     use netchronicle_db::NetworkRepository;
     use netchronicle_network_monitor::{CompositeProbe, NetworkProbe};
     use tracing::warn;

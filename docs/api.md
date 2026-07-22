@@ -116,6 +116,8 @@ Merged app and website activity for a day.
 
 ### `GET /weekly-report`
 
+Legacy alias for weekly period summary (prefer `/reports/weekly`).
+
 ```json
 {
   "weekStart": "2026-06-09",
@@ -125,13 +127,69 @@ Merged app and website activity for a day.
     "productiveMinutes": 900,
     "sessionCount": 42,
     "averageProductivityScore": 75.0,
+    "distractionImpactPct": 18.5,
     "categoryMinutes": [],
+    "timeOfDay": [],
     "topApps": [],
     "topDomains": []
   },
   "cached": true
 }
 ```
+
+---
+
+## Reports (Phase 6)
+
+### `GET /reports/daily`
+
+Cached daily report with time-of-day patterns.
+
+Query: `?date=YYYY-MM-DD`
+
+### `GET /reports/weekly`
+
+Monday–Sunday week containing `date` (or `from`).
+
+### `GET /reports/monthly`
+
+Calendar month containing `date`.
+
+```json
+{
+  "reportType": "monthly",
+  "periodStart": "2026-07-01",
+  "periodEnd": "2026-07-31",
+  "summary": {
+    "totalOnlineMinutes": 4800,
+    "productiveMinutes": 3200,
+    "sessionCount": 140,
+    "averageProductivityScore": 72.0,
+    "distractionImpactPct": 15.2,
+    "categoryMinutes": [],
+    "timeOfDay": [
+      { "hour": 9, "totalMinutes": 120, "productiveMinutes": 100, "distractionMinutes": 10 }
+    ],
+    "topApps": [],
+    "topDomains": []
+  },
+  "cached": true
+}
+```
+
+### `GET /reports`
+
+List recently cached reports (`?reportType=daily|weekly|monthly`).
+
+### `GET /reports/export`
+
+Export a report as JSON or CSV.
+
+Query: `?format=json|csv&reportType=daily|weekly|monthly&date=YYYY-MM-DD`
+
+### `GET /metrics`
+
+Prometheus text gauges: sessions, network logs, reports, raw events.
 
 ---
 

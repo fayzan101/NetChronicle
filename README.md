@@ -44,6 +44,9 @@ cargo run -p netchronicle-api
 
 # Terminal 2 — tracking agent
 cargo run -p netchronicle-agent
+
+# Terminal 3 — worker (session rebuild, report cache, retention)
+cargo run -p netchronicle-worker
 ```
 
 API: `http://127.0.0.1:8080`
@@ -67,6 +70,8 @@ API: `http://127.0.0.1:8080`
 | `NETWORK_BANDWIDTH_BYTES` | `100000` | Max bytes to download per bandwidth sample |
 | `SESSION_REBUILD_INTERVAL_SECS` | `300` | Session builder interval |
 | `SESSION_REBUILD_LOOKBACK_DAYS` | `2` | Days to rebuild (today + yesterday) |
+| `WORKER_REPORT_LOOKBACK_DAYS` | `30` | Days of reports the worker recomputes |
+| `RAW_EVENTS_RETENTION_DAYS` | `30` | Prune raw_events older than this |
 | `SESSION_IDLE_GAP_SECS` | `300` | Idle gap between sessions |
 | `SESSION_MIN_DURATION_SECS` | `60` | Minimum session length |
 | `AGENT_IDLE_THRESHOLD_SECS` | `300` | Pause tracking after this many idle seconds |
@@ -88,6 +93,9 @@ See [docs/api.md](docs/api.md) for full endpoint documentation.
 | `GET /live-status` | Current activity snapshot |
 | `GET /network-stats` | Network samples + avg/p95 aggregations |
 | `GET /network-events` | Disconnects and latency/loss spikes |
+| `GET /reports/daily\|weekly\|monthly` | Cached period reports |
+| `GET /reports/export` | Export report as JSON or CSV |
+| `GET /metrics` | Prometheus-style gauges |
 | `GET /insights` | Rule-based insights |
 | `GET/POST/PUT/DELETE /category-rules` | Category rule CRUD |
 | `POST /browser-tab` | Report active browser tab URL (extension fallback) |
@@ -106,6 +114,7 @@ Install the unpacked Chrome/Edge extension from [`extension/`](extension/) so th
 |-------|------|
 | `agent` | Foreground tracking + network sampling |
 | `api` | REST API |
+| `worker` | Session rebuild, report cache, retention |
 | `db` | PostgreSQL repositories |
 | `session-builder` | Groups logs into sessions |
 | `analytics` | Scores and insights |
@@ -120,6 +129,7 @@ Install the unpacked Chrome/Edge extension from [`extension/`](extension/) so th
 | [Implementation plan](docs/implementation-plan.md) | Phase-wise remaining work |
 | [API](docs/api.md) | REST endpoint reference |
 | [Architecture](docs/architecture.md) | System overview |
+| [Deployment](docs/deployment.md) | API, agent, worker, Neon / Fly / Railway |
 
 ## Tests
 

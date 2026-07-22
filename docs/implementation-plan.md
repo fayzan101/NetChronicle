@@ -16,16 +16,16 @@
 | 3 | Tracking & categorization | ✅ Mostly done (extension missing) |
 | **4** | **Real network metrics** | ✅ Done (this branch) |
 | **5** | **Tracking completeness** | ✅ Done (this branch) |
-| **6** | **Workers, reports & hardening** | ⬜ Next |
-| **7** | **Auth, settings & privacy** | ⬜ Planned |
+| **6** | **Workers, reports & hardening** | ✅ Done (this branch) |
+| **7** | **Auth, settings & privacy** | ⬜ Next |
 | **8** | **Dashboard (Next.js)** | ⬜ Planned |
 | **9** | **Optional extensions** | ○ Later |
 
-**Recommended next step:** Phase 5 — browser extension + session/website linking.
+**Recommended next step:** Phase 7 — auth, settings, and privacy.
 
 ---
 
-## What’s already shipped (Phases 0–3)
+## What’s already shipped (Phases 0–5)
 
 Do not re-implement these unless fixing bugs.
 
@@ -33,23 +33,13 @@ Do not re-implement these unless fixing bugs.
 |------|----------|
 | Schema + DB repos | `migrations/001_initial_schema.sql`, `crates/db` |
 | Agent → Postgres pipeline | `crates/agent` (window tracking, flush, live snapshot) |
-| Session builder + background rebuild | `crates/session-builder`, `crates/agent/src/session_job.rs` |
-| Analytics engine | `crates/analytics` → `/daily-report`, `/weekly-report`, `/insights` |
+| Session builder + lookback rebuild | `session_job` / worker sessions |
+| Analytics engine | `crates/analytics` |
 | Category rules CRUD + agent refresh | API + `rules_cache` |
-| Windows idle detection | `crates/agent/src/idle.rs` |
-| Browser feed HTTP server | `crates/agent/src/browser_feed.rs` (port `9477`) |
+| Idle detection (Win/macOS/Linux) | `crates/agent/src/idle.rs` |
+| Browser feed + extension | `browser_feed.rs`, `extension/` |
+| Real network metrics | `crates/network-monitor` |
 | API docs + README | `docs/api.md`, `README.md` |
-
-### Known gaps left from earlier phases
-
-These are folded into Phases 5–6 rather than reopening 2–3:
-
-- Session rebuild only covers **today**
-- `website_logs` are cleared of `session_id` but **not re-linked** after rebuild
-- Insights are shallow (no strong time-of-day / network narrative)
-- Browser URLs still rely on **title heuristics** without an extension
-- Non-Windows idle is a no-op
-- Almost no tests / no CI
 
 ---
 
@@ -123,12 +113,6 @@ These are folded into Phases 5–6 rather than reopening 2–3:
    - Expand friendly-name map for common apps
    - Optional: store process path / icon hash in `raw_events`
 
-**Recommended next step:** Phase 6 — worker, CI, richer reports.
-
----
-
-## Phase 5 — Tracking completeness ✅
-
 **Branch:** `feature/phase-5-tracking`
 
 ### Exit criteria
@@ -140,50 +124,16 @@ These are folded into Phases 5–6 rather than reopening 2–3:
 
 ---
 
-## Phase 6 — Workers, reports & production hardening
+## Phase 6 — Workers, reports & production hardening ✅
 
-**Goal:** Always-on backend ready for dashboard consumption.
-
-**Effort:** 2–3 weeks  
-**Primary crates:** new `crates/worker`, `api`, `analytics`, `db` + CI
-
-### Tasks
-
-1. **`netchronicle-worker` binary**
-   - Nightly: rebuild sessions for lookback window
-   - Compute/cache daily + weekly (+ monthly) reports in `reports`
-   - Prune old `raw_events` per retention env (e.g. 30/90 days)
-
-2. **Reports API**
-   - `GET /reports/daily|weekly|monthly`
-   - `GET /reports/export?format=json|csv`
-   - Keep existing `/daily-report` / `/weekly-report` as aliases or deprecate cleanly
-
-3. **Richer analytics**
-   - Time-of-day productivity patterns
-   - Distraction impact %
-   - Stronger network ↔ focus correlation copy
-
-4. **Testing**
-   - Unit: categorization, session-builder, analytics, network stability
-   - Integration: API + Postgres (Docker)
-   - Agent smoke test with mocked window provider
-
-5. **CI / observability**
-   - GitHub Actions: `fmt`, `clippy`, `test`
-   - `GET /health` already exists — keep DB check
-   - Optional Prometheus `/metrics`
-
-6. **Deployment docs**
-   - API on Fly/Railway + Neon
-   - Agent as Windows background process / scheduled task notes
+**Branch:** `feature/phase-6-hardening`
 
 ### Exit criteria
 
-- [ ] CI green on every PR
-- [ ] Reports generated without manual intervention
-- [ ] Retention job documented and configurable
-- [ ] Workspace test count meaningfully above current (~11)
+- [x] CI green on every PR (`fmt`, `clippy`, `test`)
+- [x] Reports generated without manual intervention (`netchronicle-worker`)
+- [x] Retention job documented and configurable (`RAW_EVENTS_RETENTION_DAYS`)
+- [x] Workspace test count meaningfully above Phase 5 baseline
 
 ---
 
@@ -282,11 +232,9 @@ These are folded into Phases 5–6 rather than reopening 2–3:
 ## Suggested build order
 
 ```
-Phase 0–3  ✅  Shipped on main
-Phase 4    →   Real network metrics          ← start here
-Phase 5    →   Extension + session correctness
-Phase 6    →   Worker + CI + richer reports
-Phase 7    →   Auth + settings + privacy
+Phase 0–5  ✅  Shipped
+Phase 6    ✅  Worker + CI + reports
+Phase 7    →   Auth + settings + privacy     ← start here
 Phase 8    →   Next.js dashboard
 Phase 9    ○   Optional advanced features
 ```

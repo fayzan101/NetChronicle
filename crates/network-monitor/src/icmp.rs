@@ -97,17 +97,10 @@ fn parse_unix_ping(output: &str) -> Option<IcmpResult> {
         .rfind('\n')
         .map(|i| i + 1)
         .unwrap_or(0);
-    let line = output[line_start..]
-        .lines()
-        .next()
-        .unwrap_or("")
-        .trim();
+    let line = output[line_start..].lines().next().unwrap_or("").trim();
 
     let sent = first_number(line)?;
-    let received = line
-        .split(',')
-        .nth(1)
-        .and_then(first_number)?;
+    let received = line.split(',').nth(1).and_then(first_number)?;
     let loss_pct = line
         .split(',')
         .find(|part| part.to_ascii_lowercase().contains("packet loss"))
@@ -122,11 +115,8 @@ fn parse_unix_ping(output: &str) -> Option<IcmpResult> {
         })
         .and_then(|l| {
             let after_eq = l.split('=').nth(1)?;
-            let avg = after_eq.trim().split('/').nth(1)?;
-            avg.trim()
-                .split_whitespace()
-                .next()
-                .and_then(|s| s.parse().ok())
+            let avg = after_eq.split('/').nth(1)?;
+            avg.split_whitespace().next().and_then(|s| s.parse().ok())
         });
 
     Some(IcmpResult {
