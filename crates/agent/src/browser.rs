@@ -9,12 +9,11 @@ static DOMAIN_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)\b((?:[a-z0-9](?:[-a-z0-9]*[a-z0-9])?\.)+[a-z]{2,})\b").unwrap()
 });
 
-static URL_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?i)(https?://[^\s]+)").unwrap());
+static URL_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"(?i)(https?://[^\s]+)").unwrap());
 
 static BROWSER_SUFFIXES: &[&str] = &[
     " - Google Chrome",
-    " - Microsoft​ Edge", // includes zero-width char variant
+    " - Microsoft\u{200B} Edge", // includes zero-width char variant
     " - Microsoft Edge",
     " — Mozilla Firefox",
     " - Mozilla Firefox",
@@ -38,8 +37,17 @@ pub fn is_browser(app_name: &str) -> bool {
 
 pub fn extract_domain_from_url(url: &str) -> Option<String> {
     let url = url.trim();
-    if let Some(stripped) = url.strip_prefix("https://").or_else(|| url.strip_prefix("http://")) {
-        let host = stripped.split('/').next()?.split('?').next()?.split(':').next()?;
+    if let Some(stripped) = url
+        .strip_prefix("https://")
+        .or_else(|| url.strip_prefix("http://"))
+    {
+        let host = stripped
+            .split('/')
+            .next()?
+            .split('?')
+            .next()?
+            .split(':')
+            .next()?;
         if host.contains('.') {
             return Some(host.to_lowercase());
         }
@@ -48,9 +56,7 @@ pub fn extract_domain_from_url(url: &str) -> Option<String> {
 }
 
 pub fn extract_domain(text: &str) -> Option<String> {
-    DOMAIN_RE
-        .find(text)
-        .map(|m| m.as_str().to_lowercase())
+    DOMAIN_RE.find(text).map(|m| m.as_str().to_lowercase())
 }
 
 static PROFILE_SUFFIX_RE: LazyLock<Regex> =
@@ -80,7 +86,7 @@ pub fn parse_browser_context(app_name: &str, window_title: &str) -> Option<Brows
     let cleaned = strip_browser_suffix(window_title);
 
     if let Some(url_match) = URL_RE.find(&cleaned) {
-        let url = url_match.as_str().trim_end_matches(|c| c == ')' || c == ']').to_string();
+        let url = url_match.as_str().trim_end_matches([')', ']']).to_string();
         let domain = extract_domain_from_url(&url);
         return Some(BrowserContext {
             page_title: cleaned,
@@ -120,11 +126,7 @@ mod tests {
 
     #[test]
     fn strips_chrome_suffix() {
-        let ctx = parse_browser_context(
-            "chrome.exe",
-            "GitHub - Google Chrome",
-        )
-        .unwrap();
+        let ctx = parse_browser_context("chrome.exe", "GitHub - Google Chrome").unwrap();
         assert_eq!(ctx.page_title, "GitHub");
         assert_eq!(ctx.domain.as_deref(), None);
     }

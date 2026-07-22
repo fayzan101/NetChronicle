@@ -93,12 +93,9 @@ impl SessionBuilder {
             return None;
         }
 
-        let first_start = group
-            .first()
-            .map(|log| {
-                log.event.recorded_at
-                    - chrono::Duration::seconds(log.event.duration_sec as i64)
-            })?;
+        let first_start = group.first().map(|log| {
+            log.event.recorded_at - chrono::Duration::seconds(log.event.duration_sec as i64)
+        })?;
         let last_end = group.last()?.event.recorded_at;
         let duration = last_end.signed_duration_since(first_start).num_seconds();
 
@@ -126,8 +123,12 @@ impl SessionBuilder {
         }
 
         let mut primary_apps: Vec<(String, i64)> = app_durations.into_iter().collect();
-        primary_apps.sort_by(|a, b| b.1.cmp(&a.1));
-        let primary_apps: Vec<String> = primary_apps.into_iter().map(|(name, _)| name).take(5).collect();
+        primary_apps.sort_by_key(|b| std::cmp::Reverse(b.1));
+        let primary_apps: Vec<String> = primary_apps
+            .into_iter()
+            .map(|(name, _)| name)
+            .take(5)
+            .collect();
 
         let category = category_durations
             .into_iter()
@@ -166,7 +167,13 @@ mod tests {
     use chrono::TimeZone;
     use netchronicle_common::ActivityCategory;
 
-    fn log(id: Uuid, app: &str, secs: i64, at: DateTime<Utc>, category: ActivityCategory) -> TrackedAppLog {
+    fn log(
+        id: Uuid,
+        app: &str,
+        secs: i64,
+        at: DateTime<Utc>,
+        category: ActivityCategory,
+    ) -> TrackedAppLog {
         TrackedAppLog {
             log_id: id,
             event: AppActivityEvent {
@@ -183,7 +190,13 @@ mod tests {
     fn groups_logs_by_idle_gap() {
         let base = Utc.with_ymd_and_hms(2026, 1, 1, 9, 0, 0).unwrap();
         let logs = vec![
-            log(Uuid::new_v4(), "Code", 120, base + chrono::Duration::minutes(2), ActivityCategory::Work),
+            log(
+                Uuid::new_v4(),
+                "Code",
+                120,
+                base + chrono::Duration::minutes(2),
+                ActivityCategory::Work,
+            ),
             log(
                 Uuid::new_v4(),
                 "Code",

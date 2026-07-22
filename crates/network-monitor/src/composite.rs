@@ -90,8 +90,7 @@ impl Default for CompositeProbe {
 
 impl CompositeProbe {
     pub fn new(config: ProbeConfig) -> Self {
-        let tcp = TcpProbe::from_host_port(&config.host, config.tcp_port)
-            .unwrap_or_default();
+        let tcp = TcpProbe::from_host_port(&config.host, config.tcp_port).unwrap_or_default();
         Self { config, tcp }
     }
 
@@ -122,11 +121,7 @@ impl NetworkProbe for CompositeProbe {
         } else {
             // ICMP unavailable (no ping binary / blocked) — fall back to TCP connect.
             let tcp_sample = self.tcp.sample().await;
-            (
-                tcp_sample.latency_ms,
-                tcp_sample.packet_loss_pct,
-                true,
-            )
+            (tcp_sample.latency_ms, tcp_sample.packet_loss_pct, true)
         };
 
         let disconnect = !online

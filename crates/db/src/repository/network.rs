@@ -35,6 +35,7 @@ impl<'a> NetworkRepository<'a> {
         Self { pool }
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn insert_log(
         &self,
         user_id: Uuid,
@@ -158,7 +159,7 @@ impl<'a> NetworkRepository<'a> {
             .collect();
 
         // Newest first for event feeds.
-        events.sort_by(|a, b| b.recorded_at.cmp(&a.recorded_at));
+        events.sort_by_key(|b| std::cmp::Reverse(b.recorded_at));
         events.truncate(limit.max(1) as usize);
         Ok(events)
     }
@@ -181,7 +182,11 @@ impl<'a> NetworkRepository<'a> {
         Ok(value)
     }
 
-    pub async fn stability_score(&self, user_id: Uuid, since: DateTime<Utc>) -> anyhow::Result<f32> {
+    pub async fn stability_score(
+        &self,
+        user_id: Uuid,
+        since: DateTime<Utc>,
+    ) -> anyhow::Result<f32> {
         let row = sqlx::query_as::<_, (i64, i64)>(
             r#"
             SELECT

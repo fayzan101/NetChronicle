@@ -36,10 +36,7 @@ impl BrowserFeed {
 
     pub async fn latest_fresh(&self, max_age: Duration) -> Option<BrowserTabReport> {
         let guard = self.0.read().await;
-        guard
-            .as_ref()
-            .filter(|tab| tab.is_fresh(max_age))
-            .cloned()
+        guard.as_ref().filter(|tab| tab.is_fresh(max_age)).cloned()
     }
 }
 

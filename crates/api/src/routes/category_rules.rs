@@ -89,7 +89,14 @@ async fn update_rule(
     let (pattern, pattern_type, category, priority) = validate_rule_request(&body)?;
 
     let row = CategoryRuleRepository::new(&state.db)
-        .update(user.user_id, id, &pattern, &pattern_type, category, priority)
+        .update(
+            user.user_id,
+            id,
+            &pattern,
+            &pattern_type,
+            category,
+            priority,
+        )
         .await
         .map_err(|e| ApiError::internal(e.to_string()))?
         .ok_or_else(|| ApiError::not_found("rule not found"))?;
@@ -139,9 +146,7 @@ async fn report_browser_tab(
     Ok(Json(serde_json::json!({ "accepted": true })))
 }
 
-fn validate_rule_request(
-    body: &RuleRequest,
-) -> ApiResult<(String, String, ActivityCategory, i32)> {
+fn validate_rule_request(body: &RuleRequest) -> ApiResult<(String, String, ActivityCategory, i32)> {
     if body.pattern.trim().is_empty() {
         return Err(ApiError::bad_request("pattern is required"));
     }

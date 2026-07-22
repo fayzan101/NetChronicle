@@ -39,15 +39,23 @@ impl<'a> UserRepository<'a> {
             return self.ensure_local_user().await;
         }
 
-        let exists = sqlx::query_scalar::<_, bool>("SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)")
-            .bind(user_id)
-            .fetch_one(self.pool)
-            .await?;
+        let exists =
+            sqlx::query_scalar::<_, bool>("SELECT EXISTS(SELECT 1 FROM users WHERE id = $1)")
+                .bind(user_id)
+                .fetch_one(self.pool)
+                .await?;
 
         if exists {
             Ok(user_id)
         } else {
             self.ensure_local_user().await
         }
+    }
+
+    pub async fn list_ids(&self) -> anyhow::Result<Vec<Uuid>> {
+        let ids = sqlx::query_scalar::<_, Uuid>("SELECT id FROM users ORDER BY created_at ASC")
+            .fetch_all(self.pool)
+            .await?;
+        Ok(ids)
     }
 }

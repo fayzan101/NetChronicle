@@ -40,7 +40,9 @@ pub fn network_stability_for_window(
             Some(losses.iter().sum::<f32>() / losses.len() as f32)
         };
         return Some(netchronicle_network_monitor::classify_stability(
-            avg_latency, avg_loss, false,
+            avg_latency,
+            avg_loss,
+            false,
         ));
     }
 

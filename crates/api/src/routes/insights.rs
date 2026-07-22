@@ -35,7 +35,10 @@ async fn insights(
         .list(user.user_id, range.from, range.to, 1000, 0)
         .await
         .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
-    let sessions: Vec<_> = session_rows.into_iter().map(session_row_to_common).collect();
+    let sessions: Vec<_> = session_rows
+        .into_iter()
+        .map(session_row_to_common)
+        .collect();
 
     let analytics = AnalyticsRepository::new(&state.db);
     let top_apps = analytics

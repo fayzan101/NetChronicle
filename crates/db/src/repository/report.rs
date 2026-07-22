@@ -64,4 +64,44 @@ impl<'a> ReportRepository<'a> {
 
         Ok(row)
     }
+
+    pub async fn list(
+        &self,
+        user_id: Uuid,
+        report_type: Option<&str>,
+        limit: i64,
+    ) -> anyhow::Result<Vec<ReportRow>> {
+        let rows = if let Some(rtype) = report_type {
+            sqlx::query_as::<_, ReportRow>(
+                r#"
+                SELECT id, report_type, period_start, period_end, summary, created_at
+                FROM reports
+                WHERE user_id = $1 AND report_type = $2
+                ORDER BY period_start DESC
+                LIMIT $3
+                "#,
+            )
+            .bind(user_id)
+            .bind(rtype)
+            .bind(limit)
+            .fetch_all(self.pool)
+            .await?
+        } else {
+            sqlx::query_as::<_, ReportRow>(
+                r#"
+                SELECT id, report_type, period_start, period_end, summary, created_at
+                FROM reports
+                WHERE user_id = $1
+                ORDER BY period_start DESC
+                LIMIT $2
+                "#,
+            )
+            .bind(user_id)
+            .bind(limit)
+            .fetch_all(self.pool)
+            .await?
+        };
+
+        Ok(rows)
+    }
 }

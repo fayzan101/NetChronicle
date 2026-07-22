@@ -101,11 +101,17 @@ mod tests {
             "Visual Studio Code"
         );
         assert_eq!(
-            friendly_name_from_process("cursor.exe", r"C:\Users\me\AppData\Local\Programs\cursor\Cursor.exe"),
+            friendly_name_from_process(
+                "cursor.exe",
+                r"C:\Users\me\AppData\Local\Programs\cursor\Cursor.exe"
+            ),
             "Cursor"
         );
         assert_eq!(
-            friendly_name_from_process("notion.exe", r"C:\Users\me\AppData\Local\Programs\Notion\Notion.exe"),
+            friendly_name_from_process(
+                "notion.exe",
+                r"C:\Users\me\AppData\Local\Programs\Notion\Notion.exe"
+            ),
             "Notion"
         );
     }

@@ -48,7 +48,13 @@ async fn list_sessions(
 ) -> ApiResult<Json<SessionsResponse>> {
     let repo = SessionRepository::new(&state.db);
     let rows = repo
-        .list(user.user_id, range.from, range.to, range.limit, range.offset)
+        .list(
+            user.user_id,
+            range.from,
+            range.to,
+            range.limit,
+            range.offset,
+        )
         .await
         .map_err(|error| crate::error::ApiError::internal(error.to_string()))?;
 

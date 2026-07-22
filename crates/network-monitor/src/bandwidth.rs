@@ -5,10 +5,7 @@ const TIMEOUT: Duration = Duration::from_secs(8);
 pub async fn estimate_bandwidth_mbps(url: &str, max_bytes: usize) -> Option<f32> {
     let url = if url.is_empty() { DEFAULT_URL } else { url };
     let max_bytes = max_bytes.clamp(10_000, 2_000_000);
-    let client = reqwest::Client::builder()
-        .timeout(TIMEOUT)
-        .build()
-        .ok()?;
+    let client = reqwest::Client::builder().timeout(TIMEOUT).build().ok()?;
     let started = Instant::now();
     let response = client.get(url).send().await.ok()?;
     if !response.status().is_success() {

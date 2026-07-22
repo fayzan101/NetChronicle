@@ -74,7 +74,13 @@ impl DateRangeParams {
             });
         }
 
-        let from = from.unwrap_or_else(|| Utc::now().date_naive().and_hms_opt(0, 0, 0).unwrap().and_utc());
+        let from = from.unwrap_or_else(|| {
+            Utc::now()
+                .date_naive()
+                .and_hms_opt(0, 0, 0)
+                .unwrap()
+                .and_utc()
+        });
         let to = to.unwrap_or(from + chrono::Duration::days(1));
 
         Ok(Self {
@@ -89,7 +95,10 @@ impl DateRangeParams {
 impl FromRequestParts<AppState> for DateRangeParams {
     type Rejection = ApiError;
 
-    async fn from_request_parts(parts: &mut Parts, _state: &AppState) -> Result<Self, Self::Rejection> {
+    async fn from_request_parts(
+        parts: &mut Parts,
+        _state: &AppState,
+    ) -> Result<Self, Self::Rejection> {
         Self::parse(parts.uri.query().unwrap_or_default())
     }
 }

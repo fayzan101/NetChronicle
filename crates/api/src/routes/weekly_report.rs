@@ -1,6 +1,8 @@
 use axum::{extract::State, routing::get, Json, Router};
 use netchronicle_analytics::AnalyticsEngine;
-use netchronicle_db::{session_row_to_common, AnalyticsRepository, ReportRepository, SessionRepository};
+use netchronicle_db::{
+    session_row_to_common, AnalyticsRepository, ReportRepository, SessionRepository,
+};
 use serde::Serialize;
 
 use crate::error::ApiResult;
@@ -49,7 +51,10 @@ async fn weekly_report(
         .list(user.user_id, from, to_end, 5000, 0)
         .await
         .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
-    let sessions: Vec<_> = session_rows.into_iter().map(session_row_to_common).collect();
+    let sessions: Vec<_> = session_rows
+        .into_iter()
+        .map(session_row_to_common)
+        .collect();
 
     let weekly = AnalyticsEngine::weekly_summary(&sessions);
     let analytics = AnalyticsRepository::new(&state.db);
@@ -67,13 +72,21 @@ async fn weekly_report(
         "productiveMinutes": weekly.productive_minutes,
         "sessionCount": weekly.session_count,
         "averageProductivityScore": weekly.average_productivity_score,
+        "distractionImpactPct": AnalyticsEngine::distraction_impact_pct(&sessions),
         "categoryMinutes": weekly.category_minutes,
+        "timeOfDay": AnalyticsEngine::time_of_day_patterns(&sessions),
         "topApps": top_apps.into_iter().map(|(name, secs)| serde_json::json!({"app": name, "minutes": secs / 60})).collect::<Vec<_>>(),
         "topDomains": top_domains.into_iter().map(|(domain, secs)| serde_json::json!({"domain": domain, "minutes": secs / 60})).collect::<Vec<_>>(),
     });
 
     reports
-        .upsert(user.user_id, "weekly", week_start, week_end, summary.clone())
+        .upsert(
+            user.user_id,
+            "weekly",
+            week_start,
+            week_end,
+            summary.clone(),
+        )
         .await
         .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
 

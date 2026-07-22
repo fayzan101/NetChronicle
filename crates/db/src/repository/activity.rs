@@ -191,4 +191,36 @@ impl<'a> ActivityRepository<'a> {
 
         Ok(row)
     }
+
+    /// Delete `raw_events` older than `before` for a user (or all users when `user_id` is None).
+    pub async fn prune_raw_events(
+        &self,
+        user_id: Option<Uuid>,
+        before: DateTime<Utc>,
+    ) -> anyhow::Result<u64> {
+        let result = if let Some(uid) = user_id {
+            sqlx::query(
+                r#"
+                DELETE FROM raw_events
+                WHERE user_id = $1 AND recorded_at < $2
+                "#,
+            )
+            .bind(uid)
+            .bind(before)
+            .execute(self.pool)
+            .await?
+        } else {
+            sqlx::query(
+                r#"
+                DELETE FROM raw_events
+                WHERE recorded_at < $1
+                "#,
+            )
+            .bind(before)
+            .execute(self.pool)
+            .await?
+        };
+
+        Ok(result.rows_affected())
+    }
 }

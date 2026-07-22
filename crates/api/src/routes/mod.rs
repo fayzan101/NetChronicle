@@ -3,6 +3,7 @@ mod daily_report;
 mod insights;
 mod live_status;
 mod network_stats;
+mod reports;
 mod sessions;
 mod timeline;
 mod weekly_report;
@@ -17,6 +18,7 @@ pub fn api_router() -> Router<AppState> {
         .merge(timeline::router())
         .merge(daily_report::router())
         .merge(weekly_report::router())
+        .merge(reports::router())
         .merge(live_status::router())
         .merge(network_stats::router())
         .merge(insights::router())

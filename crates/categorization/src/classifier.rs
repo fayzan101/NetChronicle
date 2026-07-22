@@ -13,28 +13,25 @@ impl Categorizer {
 
     pub fn classify_domain(&self, domain: &str) -> ActivityCategory {
         let domain = domain.to_lowercase();
-        self.best_match(
-            RulePatternType::Domain,
-            |rule| domain.contains(&rule.pattern),
-        )
+        self.best_match(RulePatternType::Domain, |rule| {
+            domain.contains(&rule.pattern)
+        })
         .unwrap_or(ActivityCategory::Unknown)
     }
 
     pub fn classify_url(&self, url: &str) -> ActivityCategory {
         let url = url.to_lowercase();
-        self.best_match(
-            RulePatternType::UrlPrefix,
-            |rule| url.starts_with(&rule.pattern) || url.contains(&rule.pattern),
-        )
+        self.best_match(RulePatternType::UrlPrefix, |rule| {
+            url.starts_with(&rule.pattern) || url.contains(&rule.pattern)
+        })
         .unwrap_or(ActivityCategory::Unknown)
     }
 
     pub fn classify_app(&self, app_name: &str) -> ActivityCategory {
         let app = app_name.to_lowercase();
-        if let Some(category) = self.best_match(
-            RulePatternType::AppName,
-            |rule| app.contains(&rule.pattern),
-        ) {
+        if let Some(category) =
+            self.best_match(RulePatternType::AppName, |rule| app.contains(&rule.pattern))
+        {
             return category;
         }
 
