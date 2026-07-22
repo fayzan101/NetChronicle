@@ -28,10 +28,10 @@ pub fn current_foreground() -> anyhow::Result<ForegroundWindow> {
 }
 
 pub fn friendly_name_from_process(exec_name: &str, process_path: &str) -> String {
-    let file_name = Path::new(process_path)
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or(exec_name);
+    let file_name = process_stem(process_path).unwrap_or_else(|| {
+        process_stem(exec_name)
+            .unwrap_or_else(|| exec_name.trim().to_string())
+    });
 
     let lower = file_name.to_lowercase();
     let mapped = match lower.as_str() {
@@ -84,10 +84,35 @@ pub fn friendly_name_from_process(exec_name: &str, process_path: &str) -> String
         "sublime_text" => "Sublime Text",
         "notepad++" => "Notepad++",
         "notepad" => "Notepad",
-        _ => file_name,
+        _ => file_name.as_str(),
     };
 
     mapped.to_string()
+}
+
+/// Basename stem that works for both Windows (`\`) and Unix (`/`) paths.
+fn process_stem(path: &str) -> Option<String> {
+    let trimmed = path.trim();
+    if trimmed.is_empty() {
+        return None;
+    }
+
+    let basename = trimmed
+        .rsplit(['/', '\\'])
+        .next()
+        .unwrap_or(trimmed)
+        .trim();
+
+    if basename.is_empty() {
+        return None;
+    }
+
+    let stem = Path::new(basename)
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or(basename);
+
+    Some(stem.to_string())
 }
 
 #[cfg(test)]
@@ -113,6 +138,16 @@ mod tests {
                 r"C:\Users\me\AppData\Local\Programs\Notion\Notion.exe"
             ),
             "Notion"
+        );
+        // Unix-style path should also map.
+        assert_eq!(
+            friendly_name_from_process("code", "/usr/share/code/code"),
+            "Visual Studio Code"
+        );
+        // Prefer exec_name when path is empty.
+        assert_eq!(
+            friendly_name_from_process("chrome.exe", ""),
+            "Google Chrome"
         );
     }
 }
