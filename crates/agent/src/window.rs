@@ -28,10 +28,8 @@ pub fn current_foreground() -> anyhow::Result<ForegroundWindow> {
 }
 
 pub fn friendly_name_from_process(exec_name: &str, process_path: &str) -> String {
-    let file_name = process_stem(process_path).unwrap_or_else(|| {
-        process_stem(exec_name)
-            .unwrap_or_else(|| exec_name.trim().to_string())
-    });
+    let file_name = process_stem(process_path)
+        .unwrap_or_else(|| process_stem(exec_name).unwrap_or_else(|| exec_name.trim().to_string()));
 
     let lower = file_name.to_lowercase();
     let mapped = match lower.as_str() {
@@ -97,11 +95,7 @@ fn process_stem(path: &str) -> Option<String> {
         return None;
     }
 
-    let basename = trimmed
-        .rsplit(['/', '\\'])
-        .next()
-        .unwrap_or(trimmed)
-        .trim();
+    let basename = trimmed.rsplit(['/', '\\']).next().unwrap_or(trimmed).trim();
 
     if basename.is_empty() {
         return None;
