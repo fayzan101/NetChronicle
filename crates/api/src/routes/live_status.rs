@@ -1,9 +1,14 @@
-use axum::{extract::State, routing::get, Json, Router};
+use axum::{
+    extract::{Query, State},
+    routing::get,
+    Json, Router,
+};
 use chrono::Utc;
-use netchronicle_db::{ActivityRepository, NetworkRepository};
-use serde::Serialize;
+use netchronicle_db::{ActivityRepository, DeviceRepository, NetworkRepository};
+use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
-use crate::error::ApiResult;
+use crate::error::{ApiError, ApiResult};
 use crate::query::UserQuery;
 use crate::state::AppState;
 
@@ -15,6 +20,14 @@ pub struct LiveStatusResponse {
     pub focus_score: f32,
     pub session_elapsed_sec: u32,
     pub network_latency_ms: Option<f32>,
+    pub device_id: Option<String>,
+    pub device_name: Option<String>,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LiveQuery {
+    pub device_id: Option<String>,
 }
 
 pub fn router() -> Router<AppState> {
@@ -24,17 +37,47 @@ pub fn router() -> Router<AppState> {
 async fn live_status(
     State(state): State<AppState>,
     user: UserQuery,
+    Query(query): Query<LiveQuery>,
 ) -> ApiResult<Json<LiveStatusResponse>> {
+    let devices = DeviceRepository::new(&state.db);
     let activity = ActivityRepository::new(&state.db);
-    let snapshot = activity
-        .latest_snapshot(user.user_id)
-        .await
-        .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
+
+    let device = if let Some(id) = query
+        .device_id
+        .as_deref()
+        .and_then(|s| Uuid::parse_str(s).ok())
+    {
+        devices
+            .get_by_id(user.user_id, id)
+            .await
+            .map_err(|e| ApiError::internal(e.to_string()))?
+    } else {
+        devices
+            .latest_for_user(user.user_id)
+            .await
+            .map_err(|e| ApiError::internal(e.to_string()))?
+    };
+
+    let snapshot = if let Some(device) = &device {
+        activity
+            .latest_snapshot_for_device(user.user_id, device.id)
+            .await
+            .map_err(|e| ApiError::internal(e.to_string()))?
+            .or(activity
+                .latest_snapshot(user.user_id)
+                .await
+                .map_err(|e| ApiError::internal(e.to_string()))?)
+    } else {
+        activity
+            .latest_snapshot(user.user_id)
+            .await
+            .map_err(|e| ApiError::internal(e.to_string()))?
+    };
 
     let latency = NetworkRepository::new(&state.db)
         .latest_latency(user.user_id)
         .await
-        .map_err(|e| crate::error::ApiError::internal(e.to_string()))?;
+        .map_err(|e| ApiError::internal(e.to_string()))?;
 
     let mut response = LiveStatusResponse {
         current_app: None,
@@ -42,6 +85,8 @@ async fn live_status(
         focus_score: 0.0,
         session_elapsed_sec: 0,
         network_latency_ms: latency,
+        device_id: device.as_ref().map(|d| d.id.to_string()),
+        device_name: device.as_ref().map(|d| d.name.clone()),
     };
 
     if let Some(snapshot) = snapshot {
@@ -59,7 +104,8 @@ async fn live_status(
                 .map(str::to_string);
             response.session_elapsed_sec = snapshot
                 .payload
-                .get("duration_sec")
+                .get("durationSec")
+                .or_else(|| snapshot.payload.get("duration_sec"))
                 .and_then(|v| v.as_u64())
                 .unwrap_or(0) as u32;
             response.focus_score = focus_score_from_category(

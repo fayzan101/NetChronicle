@@ -9,6 +9,7 @@ mod idle;
 mod ignore;
 mod rules_cache;
 mod session_job;
+mod settings_cache;
 mod tracker;
 mod window;
 

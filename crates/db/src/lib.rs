@@ -11,6 +11,8 @@ pub use models::{
 };
 pub use pool::{create_pool, run_migrations, DbPool};
 pub use repository::{
-    ActivityRepository, AnalyticsRepository, CategoryRuleRepository, NetworkAggregation,
+    ActivityRepository, AnalyticsRepository, ApiKeyRepository, ApiKeyRow, AuthTokenRepository,
+    AuthTokenRow, CategoryRuleRepository, DeviceRepository, DeviceRow, NetworkAggregation,
     NetworkEventRow, NetworkRepository, ReportRepository, SessionRepository, UserRepository,
+    UserRow, UserSettings,
 };

@@ -36,6 +36,7 @@ tower = "0.5"
 tower-http = { version = "0.6", features = ["cors", "trace"] }
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "stream"] }
 futures-util = "0.3"
+sha2 = "0.10"
 
 netchronicle-common = { path = "crates/common" }
 netchronicle-db = { path = "crates/db" }

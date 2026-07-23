@@ -17,11 +17,11 @@
 | **4** | **Real network metrics** | ✅ Done (this branch) |
 | **5** | **Tracking completeness** | ✅ Done (this branch) |
 | **6** | **Workers, reports & hardening** | ✅ Done (this branch) |
-| **7** | **Auth, settings & privacy** | ⬜ Next |
-| **8** | **Dashboard (Next.js)** | ⬜ Planned |
+| **7** | **Auth, settings & privacy** | ✅ Done (this branch) |
+| **8** | **Dashboard (Next.js)** | ⬜ Next |
 | **9** | **Optional extensions** | ○ Later |
 
-**Recommended next step:** Phase 7 — auth, settings, and privacy.
+**Recommended next step:** Phase 8 — Next.js dashboard.
 
 ---
 
@@ -165,9 +165,11 @@ Do not re-implement these unless fixing bugs.
 
 ### Exit criteria
 
-- [ ] Unauthenticated agents cannot write another user’s data
-- [ ] Settings change tracking behavior without code changes
-- [ ] Export + delete verified against a test user
+- [x] Unauthenticated agents cannot write another user’s data (`AGENT_API_KEY` / `AUTH_REQUIRED`)
+- [x] Settings change tracking behavior without code changes (DB settings + agent refresh)
+- [x] Export + delete verified against a test user (API endpoints + wipe)
+
+**Branch:** `feature/phase-7-auth`
 
 ---
 
@@ -232,10 +234,9 @@ Do not re-implement these unless fixing bugs.
 ## Suggested build order
 
 ```
-Phase 0–5  ✅  Shipped
-Phase 6    ✅  Worker + CI + reports
-Phase 7    →   Auth + settings + privacy     ← start here
-Phase 8    →   Next.js dashboard
+Phase 0–6  ✅  Shipped
+Phase 7    ✅  Auth + settings + privacy
+Phase 8    →   Next.js dashboard             ← start here
 Phase 9    ○   Optional advanced features
 ```
 

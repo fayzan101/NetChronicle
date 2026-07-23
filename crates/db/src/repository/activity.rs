@@ -172,6 +172,74 @@ impl<'a> ActivityRepository<'a> {
         Ok(row)
     }
 
+    pub async fn latest_snapshot_for_device(
+        &self,
+        user_id: Uuid,
+        device_id: Uuid,
+    ) -> anyhow::Result<Option<crate::models::ActivitySnapshotRow>> {
+        let row = sqlx::query_as::<_, crate::models::ActivitySnapshotRow>(
+            r#"
+            SELECT payload, recorded_at
+            FROM raw_events
+            WHERE user_id = $1
+              AND event_type = 'activity_snapshot'
+              AND payload->>'deviceId' = $2
+            ORDER BY recorded_at DESC
+            LIMIT 1
+            "#,
+        )
+        .bind(user_id)
+        .bind(device_id.to_string())
+        .fetch_optional(self.pool)
+        .await?;
+
+        Ok(row)
+    }
+
+    pub async fn export_payload(&self, user_id: Uuid) -> anyhow::Result<serde_json::Value> {
+        let apps = self
+            .list_app_logs(
+                user_id,
+                DateTime::<Utc>::from_timestamp(0, 0).unwrap_or_else(Utc::now),
+                Utc::now() + chrono::Duration::days(1),
+                50_000,
+                0,
+            )
+            .await?;
+        let sites = self
+            .list_website_logs(
+                user_id,
+                DateTime::<Utc>::from_timestamp(0, 0).unwrap_or_else(Utc::now),
+                Utc::now() + chrono::Duration::days(1),
+                50_000,
+                0,
+            )
+            .await?;
+
+        Ok(serde_json::json!({
+            "exportedAt": Utc::now().to_rfc3339(),
+            "userId": user_id,
+            "appActivityLogs": apps.into_iter().map(|row| serde_json::json!({
+                "id": row.id,
+                "appName": row.app_name,
+                "windowTitle": row.window_title,
+                "durationSec": row.duration_sec,
+                "category": row.category,
+                "recordedAt": row.recorded_at,
+                "sessionId": row.session_id,
+            })).collect::<Vec<_>>(),
+            "websiteLogs": sites.into_iter().map(|row| serde_json::json!({
+                "id": row.id,
+                "url": row.url,
+                "domain": row.domain,
+                "timeSpentSec": row.time_spent_sec,
+                "category": row.category,
+                "visitedAt": row.visited_at,
+                "sessionId": row.session_id,
+            })).collect::<Vec<_>>(),
+        }))
+    }
+
     pub async fn latest_browser_tab(
         &self,
         user_id: Uuid,

@@ -25,9 +25,9 @@ async fn main() -> anyhow::Result<()> {
     netchronicle_db::run_migrations(&pool).await?;
 
     let addr = config.socket_addr();
-    let app = app::create_app(pool);
+    let app = app::create_app(pool, config.auth_required);
 
-    info!(%addr, "NetChronicle API listening");
+    info!(%addr, auth_required = config.auth_required, "NetChronicle API listening");
     let listener = tokio::net::TcpListener::bind(addr).await?;
     axum::serve(listener, app).await?;
     Ok(())

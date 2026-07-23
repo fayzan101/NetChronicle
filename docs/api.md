@@ -247,7 +247,57 @@ Disconnects and spike windows (latency ≥ 200ms or loss ≥ 15%).
 
 ### `GET /live-status`
 
-Current activity from latest agent snapshot (within 60 seconds).
+Current activity from latest agent snapshot (within 60 seconds). Optional `?deviceId=` scopes to a device.
+
+---
+
+## Auth, settings & privacy (Phase 7)
+
+### `POST /auth/register`
+
+```json
+{ "email": "you@example.com", "password": "secret123", "displayName": "You" }
+```
+
+Returns `{ userId, token, expiresAt, … }`.
+
+### `POST /auth/login`
+
+Same shape as register (email + password) → bearer token.
+
+### `POST /auth/api-keys`
+
+Create an agent API key (requires bearer). Response includes plaintext `apiKey` once.
+
+### `GET /auth/api-keys` / `DELETE /auth/api-keys/{id}`
+
+List or revoke keys.
+
+### `GET /settings` / `PATCH /settings`
+
+```json
+{
+  "trackingEnabled": true,
+  "pollIntervalSecs": 2,
+  "idleThresholdSecs": 300,
+  "privacyHideTitles": false,
+  "privacyHideUrls": false
+}
+```
+
+### `GET /devices` / `POST /devices`
+
+Register with `{ "agentId": "laptop-1", "name": "Laptop" }`.
+
+### `POST /export`
+
+Body `{ "format": "json" | "csv" }` — full activity dump for the authenticated user.
+
+### `POST /data/delete-token` → `DELETE /data`
+
+Wipe flow: get confirmation token, then `DELETE /data` with `{ "confirmation": "…" }`.
+
+Set `AUTH_REQUIRED=true` to enforce bearer/API-key on all API routes (except `/health` and `/metrics`).
 
 ---
 
