@@ -1,6 +1,9 @@
 mod activity;
 mod analytics;
+mod api_key;
+mod auth_token;
 mod category_rule;
+mod device;
 mod network;
 mod report;
 mod session;
@@ -8,8 +11,11 @@ mod user;
 
 pub use activity::ActivityRepository;
 pub use analytics::AnalyticsRepository;
+pub use api_key::{ApiKeyRepository, ApiKeyRow};
+pub use auth_token::{AuthTokenRepository, AuthTokenRow};
 pub use category_rule::CategoryRuleRepository;
+pub use device::{DeviceRepository, DeviceRow};
 pub use network::{NetworkAggregation, NetworkEventRow, NetworkRepository};
 pub use report::ReportRepository;
 pub use session::SessionRepository;
-pub use user::UserRepository;
+pub use user::{UserRepository, UserRow, UserSettings};

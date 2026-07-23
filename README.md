@@ -77,7 +77,12 @@ API: `http://127.0.0.1:8080`
 | `AGENT_IDLE_THRESHOLD_SECS` | `300` | Pause tracking after this many idle seconds |
 | `AGENT_BROWSER_FEED_PORT` | `9477` | Local HTTP port for browser extension tab feed |
 | `RULES_REFRESH_INTERVAL_SECS` | `60` | How often the agent reloads category rules from DB |
-| `DEFAULT_USER_ID` | — | API default user UUID |
+| `SETTINGS_REFRESH_INTERVAL_SECS` | `30` | How often the agent reloads user settings |
+| `AUTH_REQUIRED` | `false` | Require Bearer / API key on API (and agent key) |
+| `AGENT_API_KEY` | — | Agent API key (`nck_…`) binds writes to a user |
+| `AGENT_DEVICE_ID` | hostname | Stable device id for this agent |
+| `AGENT_DEVICE_NAME` | `Local Agent` | Friendly device name |
+| `DEFAULT_USER_ID` | — | API default user UUID (local mode only) |
 
 ## API overview
 
@@ -86,11 +91,21 @@ See [docs/api.md](docs/api.md) for full endpoint documentation.
 | Endpoint | Description |
 |----------|-------------|
 | `GET /health` | Health + DB check |
+| `POST /auth/register` | Create user + session token |
+| `POST /auth/login` | Login + session token |
+| `GET/POST /auth/api-keys` | List / create agent API keys |
+| `DELETE /auth/api-keys/{id}` | Revoke API key |
+| `GET/PATCH /settings` | Tracking + privacy settings |
+| `GET/POST /devices` | List / register devices |
+| `POST /devices/heartbeat` | Touch device last_seen |
+| `POST /export` | Export user activity (JSON/CSV) |
+| `POST /data/delete-token` | Confirmation token for wipe |
+| `DELETE /data` | Wipe user activity |
 | `GET /sessions` | Built sessions |
 | `GET /timeline` | Merged app + website timeline |
 | `GET /daily-report` | Daily productivity summary |
 | `GET /weekly-report` | Weekly summary (cached) |
-| `GET /live-status` | Current activity snapshot |
+| `GET /live-status` | Current activity snapshot (`?deviceId=`) |
 | `GET /network-stats` | Network samples + avg/p95 aggregations |
 | `GET /network-events` | Disconnects and latency/loss spikes |
 | `GET /reports/daily\|weekly\|monthly` | Cached period reports |
@@ -100,7 +115,7 @@ See [docs/api.md](docs/api.md) for full endpoint documentation.
 | `GET/POST/PUT/DELETE /category-rules` | Category rule CRUD |
 | `POST /browser-tab` | Report active browser tab URL (extension fallback) |
 
-Common query params: `?date=YYYY-MM-DD`, `?from=`, `?to=`, `?limit=`, `?offset=`, `?user_id=`
+Auth: send `Authorization: Bearer <token>` or `X-Api-Key: nck_…`. With `AUTH_REQUIRED=false` (default), local single-user mode still works without a token.
 
 ## Browser extension
 

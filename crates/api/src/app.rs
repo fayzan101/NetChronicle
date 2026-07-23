@@ -16,8 +16,8 @@ struct HealthResponse {
     database: &'static str,
 }
 
-pub fn create_app(db: DbPool) -> Router {
-    let state = AppState::new(db.clone());
+pub fn create_app(db: DbPool, auth_required: bool) -> Router {
+    let state = AppState::new(db.clone(), auth_required);
 
     Router::new()
         .merge(routes::api_router())

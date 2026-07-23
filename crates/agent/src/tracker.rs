@@ -29,6 +29,7 @@ pub struct ActivityTracker {
     browser_feed: BrowserFeed,
     min_segment_secs: u32,
     poll_secs: u32,
+    device_id: Option<Uuid>,
     last_heartbeat: Option<DateTime<Utc>>,
     current: Option<ActiveSegment>,
 }
@@ -41,6 +42,7 @@ impl ActivityTracker {
         browser_feed: BrowserFeed,
         min_segment_secs: u32,
         poll_secs: u32,
+        device_id: Option<Uuid>,
     ) -> Self {
         Self {
             user_id,
@@ -49,15 +51,35 @@ impl ActivityTracker {
             browser_feed,
             min_segment_secs,
             poll_secs,
+            device_id,
             last_heartbeat: None,
             current: None,
         }
     }
 
-    pub async fn tick(&mut self, window: ForegroundWindow) -> anyhow::Result<()> {
-        let browser = self.resolve_browser_context(&window).await;
+    pub async fn tick(
+        &mut self,
+        window: ForegroundWindow,
+        settings: &netchronicle_db::UserSettings,
+    ) -> anyhow::Result<()> {
+        let mut window = window;
+        if settings.privacy_hide_titles {
+            window.window_title = String::new();
+        }
+
+        let mut browser = self.resolve_browser_context(&window).await;
+        if settings.privacy_hide_urls {
+            if let Some(ctx) = &mut browser {
+                ctx.url = String::new();
+                // Keep domain for categorization when possible.
+            }
+        }
+
         let domain = browser.as_ref().and_then(|ctx| ctx.domain.clone());
-        let url = browser.as_ref().map(|ctx| ctx.url.as_str());
+        let url = browser
+            .as_ref()
+            .map(|ctx| ctx.url.as_str())
+            .filter(|u| !u.is_empty());
 
         let category = self
             .rules
@@ -279,6 +301,7 @@ impl ActivityTracker {
             "startedAt": segment.started_at.to_rfc3339(),
             "processPath": segment.window.process_path,
             "processId": segment.window.process_id,
+            "deviceId": self.device_id,
             "heartbeat": heartbeat,
             "flushed": flushed,
         })
