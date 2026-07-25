@@ -18,10 +18,10 @@
 | **5** | **Tracking completeness** | ✅ Done (this branch) |
 | **6** | **Workers, reports & hardening** | ✅ Done (this branch) |
 | **7** | **Auth, settings & privacy** | ✅ Done (this branch) |
-| **8** | **Dashboard (Angular)** | 🔄 Slice in progress (Today / Timeline / Live) |
+| **8** | **Dashboard (Angular)** | 🔄 Slice 2 (core pages); Settings remaining |
 | **9** | **Optional extensions** | ○ Later |
 
-**Recommended next step:** Finish Phase 8 remaining routes (network, analytics, insights, reports, settings + auth UI).
+**Recommended next step:** Phase 8 Settings + auth UI (login, API keys, privacy).
 
 ---
 
@@ -193,13 +193,13 @@ Do not re-implement these unless fixing bugs.
 
    | Route | Purpose | Status |
    |-------|---------|--------|
-   | `/` | Today summary + live status | ✅ Slice |
-   | `/timeline` | Merged app + website day view | ✅ Slice |
-   | `/live` | Live mode polling | ✅ Slice |
-   | `/network` | Latency / loss / disconnects | ⬜ Later |
-   | `/analytics` | Charts (daily/weekly) | ⬜ Later |
-   | `/insights` | Insight cards | ⬜ Later |
-   | `/reports` | Cached reports + export | ⬜ Later |
+   | `/` | Today summary + live status | ✅ |
+   | `/timeline` | Merged app + website day view | ✅ |
+   | `/live` | Live mode polling | ✅ |
+   | `/network` | Latency / loss / disconnects | ✅ |
+   | `/analytics` | Charts (daily/weekly) | ✅ |
+   | `/insights` | Insight cards | ✅ |
+   | `/reports` | Cached reports + export | ✅ |
    | `/settings` | Tracking + privacy controls + auth UI | ⬜ Later |
 
 3. **UX constraints**
@@ -213,8 +213,8 @@ Do not re-implement these unless fixing bugs.
 
 ### Exit criteria
 
-- [x] Today / Timeline / Live render real API data (local `AUTH_REQUIRED=false`)
-- [ ] Remaining core routes render real API data
+- [x] Today / Timeline / Live / Network / Analytics / Insights / Reports render real API data (local `AUTH_REQUIRED=false`)
+- [ ] Settings + auth UI
 - [x] `scripts/dev.ps1` starts API + agent + dashboard docs match reality
 - [x] Mobile-usable layout for timeline + today view
 
@@ -240,7 +240,7 @@ Do not re-implement these unless fixing bugs.
 ```
 Phase 0–6  ✅  Shipped
 Phase 7    ✅  Auth + settings + privacy
-Phase 8    →   Angular dashboard (slice: Today/Timeline/Live)
+Phase 8    →   Angular dashboard (Settings remaining)
 Phase 9    ○   Optional advanced features
 ```
 

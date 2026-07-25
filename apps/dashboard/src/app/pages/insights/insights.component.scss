@@ -1,0 +1,109 @@
+.page {
+  max-width: 40rem;
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.date-field input {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, white 70%, transparent);
+  color: var(--ink);
+  font: inherit;
+}
+
+.insights {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.insights li {
+  padding: 1.15rem 0 1.25rem;
+  border-bottom: 1px solid var(--line);
+  animation: fade-up 280ms ease both;
+}
+
+.severity {
+  display: inline-block;
+  margin-bottom: 0.4rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--teal);
+}
+
+.insights li[data-severity='warning'] .severity,
+.insights li[data-severity='warn'] .severity {
+  color: #9a6700;
+}
+
+.insights li[data-severity='critical'] .severity,
+.insights li[data-severity='high'] .severity {
+  color: var(--danger);
+}
+
+h2 {
+  margin: 0 0 0.4rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.insights p {
+  margin: 0;
+  color: color-mix(in srgb, var(--ink) 82%, transparent);
+  line-height: 1.5;
+}
+
+.state {
+  color: var(--muted);
+}
+
+.state.is-error {
+  color: var(--danger);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
