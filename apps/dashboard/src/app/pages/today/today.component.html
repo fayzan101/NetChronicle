@@ -1,0 +1,69 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Day summary</p>
+      <h1>How did today go?</h1>
+    </div>
+    <label class="date-field">
+      <span>Date</span>
+      <input
+        type="date"
+        [ngModel]="date()"
+        (ngModelChange)="onDateChange($event)"
+      />
+    </label>
+  </header>
+
+  @if (live(); as status) {
+    <p class="live-strip">
+      Now:
+      <strong>{{ status.currentApp || status.currentSite || 'Idle / unknown' }}</strong>
+      @if (status.currentSite && status.currentApp) {
+        <span class="muted">· {{ status.currentSite }}</span>
+      }
+      <span class="muted">· focus {{ status.focusScore | number: '1.0-0' }}</span>
+    </p>
+  }
+
+  @if (loading()) {
+    <p class="state">Loading today’s report…</p>
+  } @else if (error()) {
+    <p class="state is-error">{{ error() }}</p>
+  } @else if (!report()) {
+    <p class="state">No report for this day yet. Start the agent to collect activity.</p>
+  }
+
+  @if (!loading() && !error() && report(); as r) {
+    <div class="metrics">
+      <article class="metric metric-hero">
+        <span class="metric-label">Productivity</span>
+        <span class="metric-value">{{ r.productivityScore | number: '1.0-0' }}</span>
+        <div class="bar" aria-hidden="true">
+          <span [style.width.%]="r.productivityScore"></span>
+        </div>
+      </article>
+      <article class="metric">
+        <span class="metric-label">Focus</span>
+        <span class="metric-value">{{ r.focusMinutes }}m</span>
+      </article>
+      <article class="metric">
+        <span class="metric-label">Online</span>
+        <span class="metric-value">{{ r.totalOnlineMinutes }}m</span>
+      </article>
+      <article class="metric">
+        <span class="metric-label">Network health</span>
+        <span class="metric-value">{{ r.networkHealthScore | number: '1.0-0' }}</span>
+        <div class="bar" aria-hidden="true">
+          <span [style.width.%]="r.networkHealthScore"></span>
+        </div>
+      </article>
+      <article class="metric">
+        <span class="metric-label">Distraction</span>
+        <span class="metric-value">{{ distractionPct(r) }}%</span>
+      </article>
+    </div>
+    @if (r.cached) {
+      <p class="footnote">Cached report</p>
+    }
+  }
+</section>

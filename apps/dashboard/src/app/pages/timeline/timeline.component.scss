@@ -1,0 +1,135 @@
+.page {
+  max-width: 44rem;
+}
+
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.35rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  color: var(--ink);
+}
+
+.date-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.date-field input {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, white 70%, transparent);
+  color: var(--ink);
+  font: inherit;
+}
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: 1rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--line);
+  animation: fade-up 280ms ease both;
+}
+
+.time {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.92rem;
+  color: var(--muted);
+  padding-top: 0.15rem;
+}
+
+.title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.label {
+  font-weight: 600;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.duration {
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  font-size: 0.82rem;
+}
+
+.pill {
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--teal) 16%, transparent);
+  color: color-mix(in srgb, var(--ink) 85%, var(--teal));
+}
+
+.source {
+  color: var(--muted);
+  text-transform: lowercase;
+}
+
+.state {
+  color: var(--muted);
+}
+
+.state.is-error {
+  color: var(--danger);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 560px) {
+  .row {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+}

@@ -1,0 +1,32 @@
+<div class="shell">
+  <aside class="chrome">
+    <a class="brand" routerLink="/">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="brand-name">NetChronicle</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      @for (item of nav; track item.path) {
+        @if (item.ready) {
+          <a
+            class="nav-link"
+            [routerLink]="item.path"
+            routerLinkActive="is-active"
+            [routerLinkActiveOptions]="{ exact: item.exact }"
+          >
+            {{ item.label }}
+          </a>
+        } @else {
+          <span class="nav-link is-soon" title="Coming soon">
+            {{ item.label }}
+            <em>soon</em>
+          </span>
+        }
+      }
+    </nav>
+  </aside>
+
+  <main class="stage">
+    <router-outlet />
+  </main>
+</div>

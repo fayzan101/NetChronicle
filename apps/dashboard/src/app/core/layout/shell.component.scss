@@ -1,0 +1,130 @@
+.shell {
+  display: grid;
+  grid-template-columns: 15.5rem minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+.chrome {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1.75rem 1.25rem;
+  border-right: 1px solid var(--line);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--ink) 92%, transparent),
+    color-mix(in srgb, var(--ink) 78%, var(--teal) 8%)
+  );
+  color: var(--mist);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: inherit;
+}
+
+.brand-mark {
+  width: 0.85rem;
+  height: 0.85rem;
+  border-radius: 0.2rem;
+  background: linear-gradient(135deg, var(--teal), var(--lime));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--teal) 25%, transparent);
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.nav-link {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 0.4rem;
+  color: color-mix(in srgb, var(--mist) 78%, transparent);
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.nav-link:hover {
+  color: var(--mist);
+  background: color-mix(in srgb, white 6%, transparent);
+}
+
+.nav-link.is-active {
+  color: var(--ink);
+  background: var(--lime);
+  font-weight: 600;
+}
+
+.nav-link.is-soon {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.nav-link em {
+  font-style: normal;
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.stage {
+  padding: 1.75rem clamp(1.25rem, 3vw, 2.5rem) 2.5rem;
+  animation: stage-in 320ms ease both;
+}
+
+@keyframes stage-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 860px) {
+  .shell {
+    grid-template-columns: 1fr;
+  }
+
+  .chrome {
+    gap: 1rem;
+    padding: 1rem 1rem 0.75rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .nav-link {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.88rem;
+  }
+
+  .stage {
+    padding: 1.25rem 1rem 2rem;
+  }
+}

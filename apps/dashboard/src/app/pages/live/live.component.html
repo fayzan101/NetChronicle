@@ -1,0 +1,59 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">
+        <span class="pulse" [class.is-stale]="stale() || !!error()" aria-hidden="true"></span>
+        Live mode
+      </p>
+      <h1>What are you doing now?</h1>
+    </div>
+  </header>
+
+  @if (loading() && !status()) {
+    <p class="state">Connecting…</p>
+  } @else if (error() && !status()) {
+    <p class="state is-error">{{ error() }}</p>
+  } @else if (!status()) {
+    <p class="state">No recent snapshot. Is the agent running?</p>
+  }
+
+  @if (status(); as s) {
+    <div class="live-panel">
+      <p class="headline">{{ headline(s) }}</p>
+      @if (secondary(s); as site) {
+        <p class="secondary">{{ site }}</p>
+      }
+
+      <dl class="stats">
+        <div>
+          <dt>Session</dt>
+          <dd>{{ formatDuration(s.sessionElapsedSec) }}</dd>
+        </div>
+        <div>
+          <dt>Focus</dt>
+          <dd>{{ s.focusScore | number: '1.0-0' }}</dd>
+        </div>
+        <div>
+          <dt>Latency</dt>
+          <dd>
+            @if (s.networkLatencyMs !== null) {
+              {{ s.networkLatencyMs | number: '1.0-0' }} ms
+            } @else {
+              —
+            }
+          </dd>
+        </div>
+        @if (s.deviceName) {
+          <div>
+            <dt>Device</dt>
+            <dd>{{ s.deviceName }}</dd>
+          </div>
+        }
+      </dl>
+
+      @if (error()) {
+        <p class="state is-error">Last poll failed — showing previous snapshot.</p>
+      }
+    </div>
+  }
+</section>

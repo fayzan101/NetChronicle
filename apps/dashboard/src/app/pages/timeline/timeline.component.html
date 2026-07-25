@@ -1,0 +1,42 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Activity</p>
+      <h1>Timeline</h1>
+    </div>
+    <label class="date-field">
+      <span>Date</span>
+      <input
+        type="date"
+        [ngModel]="date()"
+        (ngModelChange)="onDateChange($event)"
+      />
+    </label>
+  </header>
+
+  @if (loading()) {
+    <p class="state">Loading timeline…</p>
+  } @else if (error()) {
+    <p class="state is-error">{{ error() }}</p>
+  } @else if (entries().length === 0) {
+    <p class="state">No activity for this day.</p>
+  } @else {
+    <ol class="timeline">
+      @for (entry of entries(); track entry.time + entry.label + entry.source) {
+        <li class="row">
+          <time class="time">{{ formatClock(entry.time) }}</time>
+          <div class="body">
+            <div class="title-row">
+              <span class="label">{{ entry.label }}</span>
+              <span class="duration">{{ formatDuration(entry.durationSec) }}</span>
+            </div>
+            <div class="meta">
+              <span class="pill">{{ entry.category || 'uncategorized' }}</span>
+              <span class="source">{{ entry.source }}</span>
+            </div>
+          </div>
+        </li>
+      }
+    </ol>
+  }
+</section>

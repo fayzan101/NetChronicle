@@ -16,4 +16,4 @@ if (-not $SkipDocker) {
 
 Write-Host "Run API:    cargo run -p netchronicle-api"
 Write-Host "Run agent:  cargo run -p netchronicle-agent"
-Write-Host "Dashboard:  cd apps/dashboard && npm run dev"
+Write-Host "Dashboard:  cd apps/dashboard && npm start"
