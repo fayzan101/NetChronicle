@@ -17,6 +17,6 @@ export class ShellComponent {
     { path: '/analytics', label: 'Analytics', exact: false, ready: true },
     { path: '/insights', label: 'Insights', exact: false, ready: true },
     { path: '/reports', label: 'Reports', exact: false, ready: true },
-    { path: '/settings', label: 'Settings', exact: false, ready: false },
+    { path: '/settings', label: 'Settings', exact: false, ready: true },
   ] as const;
 }

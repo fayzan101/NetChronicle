@@ -55,4 +55,4 @@ flowchart TB
 | `/insights` | Insights panel |
 | `/reports` | Reports |
 | `/live` | Live mode |
-| `/settings` | Settings (soon) |
+| `/settings` | Settings |

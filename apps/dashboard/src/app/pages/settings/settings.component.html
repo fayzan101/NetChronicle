@@ -1,0 +1,216 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Controls</p>
+      <h1>Settings</h1>
+    </div>
+  </header>
+
+  <section class="block">
+    <h2>Account</h2>
+    @if (auth.isSignedIn()) {
+      <p class="lede">
+        Signed in as <strong>{{ auth.displayName() }}</strong>
+        @if (auth.session()?.email) {
+          <span class="muted"> · {{ auth.session()!.email }}</span>
+        }
+      </p>
+      <button type="button" class="btn" (click)="signOut()">Sign out</button>
+    } @else {
+      <p class="lede muted">
+        Optional for local mode (<code>AUTH_REQUIRED=false</code>). Sign in to bind settings, keys, and wipe to your user.
+      </p>
+      <div class="tabs">
+        <button
+          type="button"
+          class="tab"
+          [class.is-active]="authMode() === 'login'"
+          (click)="setAuthMode('login')"
+        >
+          Sign in
+        </button>
+        <button
+          type="button"
+          class="tab"
+          [class.is-active]="authMode() === 'register'"
+          (click)="setAuthMode('register')"
+        >
+          Register
+        </button>
+      </div>
+      <form class="form" (ngSubmit)="submitAuth()">
+        @if (authMode() === 'register') {
+          <label>
+            <span>Display name</span>
+            <input type="text" name="displayName" [(ngModel)]="displayName" autocomplete="nickname" />
+          </label>
+        }
+        <label>
+          <span>Email</span>
+          <input type="email" name="email" required [(ngModel)]="email" autocomplete="email" />
+        </label>
+        <label>
+          <span>Password</span>
+          <input
+            type="password"
+            name="password"
+            required
+            minlength="8"
+            [(ngModel)]="password"
+            autocomplete="current-password"
+          />
+        </label>
+        <button type="submit" class="btn primary" [disabled]="authBusy()">
+          {{ authMode() === 'login' ? 'Sign in' : 'Create account' }}
+        </button>
+      </form>
+    }
+    @if (authError()) {
+      <p class="state is-error">{{ authError() }}</p>
+    }
+    @if (authNotice()) {
+      <p class="state is-ok">{{ authNotice() }}</p>
+    }
+  </section>
+
+  <section class="block">
+    <h2>Tracking</h2>
+    @if (settingsLoading()) {
+      <p class="state">Loading…</p>
+    } @else {
+      <form class="form" (ngSubmit)="saveSettings()">
+        <label class="check">
+          <input type="checkbox" name="trackingEnabled" [(ngModel)]="trackingEnabled" />
+          <span>Tracking enabled</span>
+        </label>
+        <label>
+          <span>Poll interval (secs)</span>
+          <input type="number" name="poll" min="1" [(ngModel)]="pollIntervalSecs" />
+        </label>
+        <label>
+          <span>Idle threshold (secs)</span>
+          <input type="number" name="idle" min="30" [(ngModel)]="idleThresholdSecs" />
+        </label>
+        <label>
+          <span>Network sample interval (secs)</span>
+          <input type="number" name="net" min="5" [(ngModel)]="networkSampleIntervalSecs" />
+        </label>
+        <label class="check">
+          <input type="checkbox" name="hideTitles" [(ngModel)]="privacyHideTitles" />
+          <span>Hide window titles</span>
+        </label>
+        <label class="check">
+          <input type="checkbox" name="hideUrls" [(ngModel)]="privacyHideUrls" />
+          <span>Hide URLs</span>
+        </label>
+        <button type="submit" class="btn primary">Save settings</button>
+      </form>
+    }
+    @if (settingsError()) {
+      <p class="state is-error">{{ settingsError() }}</p>
+    }
+    @if (settingsSaved()) {
+      <p class="state is-ok">Settings saved. Agent reloads within SETTINGS_REFRESH_INTERVAL_SECS.</p>
+    }
+  </section>
+
+  <section class="block">
+    <h2>API keys</h2>
+    <p class="lede muted">Create an agent key (<code>nck_…</code>) for <code>AGENT_API_KEY</code>.</p>
+    <form class="inline-form" (ngSubmit)="createKey()">
+      <input type="text" name="keyName" placeholder="Key name" [(ngModel)]="newKeyName" />
+      <button type="submit" class="btn primary">Create key</button>
+    </form>
+    @if (createdKey()) {
+      <p class="secret">
+        Copy now — shown once:
+        <code>{{ createdKey() }}</code>
+      </p>
+    }
+    @if (keysError()) {
+      <p class="state is-error">{{ keysError() }}</p>
+    }
+    @if (keys().length === 0) {
+      <p class="state">No API keys yet.</p>
+    } @else {
+      <ul class="list">
+        @for (key of keys(); track key.id) {
+          <li>
+            <div>
+              <strong>{{ key.name }}</strong>
+              <span class="muted"> · {{ key.keyPrefix }}…</span>
+              @if (key.revoked) {
+                <span class="badge">revoked</span>
+              }
+            </div>
+            @if (!key.revoked) {
+              <button type="button" class="btn danger" (click)="revokeKey(key.id)">Revoke</button>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <section class="block">
+    <h2>Devices</h2>
+    <form class="inline-form" (ngSubmit)="registerDevice()">
+      <input
+        type="text"
+        name="agentId"
+        required
+        placeholder="Agent id"
+        [(ngModel)]="deviceAgentId"
+      />
+      <input type="text" name="deviceName" placeholder="Name" [(ngModel)]="deviceName" />
+      <button type="submit" class="btn primary">Register</button>
+    </form>
+    @if (devicesError()) {
+      <p class="state is-error">{{ devicesError() }}</p>
+    }
+    @if (devices().length === 0) {
+      <p class="state">No devices registered.</p>
+    } @else {
+      <ul class="list">
+        @for (device of devices(); track device.id) {
+          <li>
+            <div>
+              <strong>{{ device.name }}</strong>
+              <span class="muted"> · {{ device.agentId }}</span>
+            </div>
+            <span class="muted">seen {{ formatClock(device.lastSeen) }}</span>
+          </li>
+        }
+      </ul>
+    }
+  </section>
+
+  <section class="block">
+    <h2>Privacy</h2>
+    <div class="export-row">
+      <button type="button" class="btn" (click)="exportActivity('json')">Export JSON</button>
+      <button type="button" class="btn" (click)="exportActivity('csv')">Export CSV</button>
+    </div>
+    <div class="danger-zone">
+      <p class="lede">Wipe all activity for this user. This cannot be undone.</p>
+      <label class="check">
+        <input type="checkbox" name="wipeConfirm" [(ngModel)]="wipeConfirm" />
+        <span>I understand this deletes sessions, logs, and snapshots</span>
+      </label>
+      <button
+        type="button"
+        class="btn danger"
+        [disabled]="wipeBusy() || !wipeConfirm"
+        (click)="wipeData()"
+      >
+        Delete my data
+      </button>
+    </div>
+    @if (privacyError()) {
+      <p class="state is-error">{{ privacyError() }}</p>
+    }
+    @if (privacyNotice()) {
+      <p class="state is-ok">{{ privacyNotice() }}</p>
+    }
+  </section>
+</section>

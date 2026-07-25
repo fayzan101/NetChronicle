@@ -1,10 +1,16 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import {
+  ApiKeyItem,
+  AuthResponse,
+  CreateApiKeyResponse,
   DailyReport,
+  DeleteDataResponse,
+  DeleteTokenResponse,
+  DeviceItem,
   InsightsResponse,
   LiveStatus,
   NetworkEventsResponse,
@@ -14,6 +20,8 @@ import {
   ReportType,
   SessionsResponse,
   TimelineResponse,
+  UserSettings,
+  UserSettingsPatch,
 } from './models';
 
 @Injectable({ providedIn: 'root' })
@@ -92,6 +100,82 @@ export class ApiService {
       .set('reportType', reportType)
       .set('date', date);
     return `${this.baseUrl}/reports/export?${params.toString()}`;
+  }
+
+  register(
+    email: string,
+    password: string,
+    displayName?: string,
+  ): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.baseUrl}/auth/register`, {
+      email,
+      password,
+      displayName: displayName || undefined,
+    });
+  }
+
+  login(email: string, password: string): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${this.baseUrl}/auth/login`, {
+      email,
+      password,
+    });
+  }
+
+  getSettings(): Observable<UserSettings> {
+    return this.http.get<UserSettings>(`${this.baseUrl}/settings`);
+  }
+
+  patchSettings(patch: UserSettingsPatch): Observable<UserSettings> {
+    return this.http.patch<UserSettings>(`${this.baseUrl}/settings`, patch);
+  }
+
+  listApiKeys(): Observable<ApiKeyItem[]> {
+    return this.http.get<ApiKeyItem[]>(`${this.baseUrl}/auth/api-keys`);
+  }
+
+  createApiKey(name?: string): Observable<CreateApiKeyResponse> {
+    return this.http.post<CreateApiKeyResponse>(
+      `${this.baseUrl}/auth/api-keys`,
+      { name: name || undefined },
+    );
+  }
+
+  revokeApiKey(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/auth/api-keys/${id}`);
+  }
+
+  listDevices(): Observable<DeviceItem[]> {
+    return this.http.get<DeviceItem[]>(`${this.baseUrl}/devices`);
+  }
+
+  registerDevice(agentId: string, name?: string): Observable<DeviceItem> {
+    return this.http.post<DeviceItem>(`${this.baseUrl}/devices`, {
+      agentId,
+      name: name || undefined,
+    });
+  }
+
+  exportActivity(
+    format: 'json' | 'csv',
+  ): Observable<HttpResponse<Blob>> {
+    return this.http.post(
+      `${this.baseUrl}/export`,
+      { format },
+      { responseType: 'blob', observe: 'response' },
+    );
+  }
+
+  getDeleteToken(): Observable<DeleteTokenResponse> {
+    return this.http.post<DeleteTokenResponse>(
+      `${this.baseUrl}/data/delete-token`,
+      {},
+    );
+  }
+
+  deleteData(confirmation: string): Observable<DeleteDataResponse> {
+    return this.http.request<DeleteDataResponse>('DELETE', `${this.baseUrl}/data`, {
+      body: { confirmation },
+    });
   }
 
   private dateParams(date?: string): HttpParams {

@@ -155,3 +155,66 @@ export interface ReportListItem {
 export interface ReportsListResponse {
   reports: ReportListItem[];
 }
+
+export interface AuthResponse {
+  userId: string;
+  email: string | null;
+  displayName: string;
+  token: string;
+  expiresAt: string;
+}
+
+export interface AuthSession {
+  userId: string;
+  email: string | null;
+  displayName: string;
+  token: string;
+  expiresAt: string;
+}
+
+export interface UserSettings {
+  trackingEnabled: boolean;
+  pollIntervalSecs: number | null;
+  idleThresholdSecs: number | null;
+  networkSampleIntervalSecs: number | null;
+  privacyHideTitles: boolean;
+  privacyHideUrls: boolean;
+}
+
+export type UserSettingsPatch = Partial<UserSettings>;
+
+export interface ApiKeyItem {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  createdAt: string;
+  lastUsedAt: string | null;
+  revoked: boolean;
+}
+
+export interface CreateApiKeyResponse {
+  id: string;
+  name: string;
+  keyPrefix: string;
+  apiKey: string;
+  createdAt: string;
+}
+
+export interface DeviceItem {
+  id: string;
+  agentId: string;
+  name: string;
+  lastSeen: string;
+  createdAt: string;
+}
+
+export interface DeleteTokenResponse {
+  confirmation: string;
+  instruction: string;
+}
+
+export interface DeleteDataResponse {
+  deletedRows: number;
+  userId: string;
+}
+
