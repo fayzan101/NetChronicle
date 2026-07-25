@@ -54,3 +54,21 @@ export function formatClock(iso: string): string {
   }
   return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
+
+export function formatMinutes(minutes: number): string {
+  const m = Math.round(minutes);
+  if (m < 60) {
+    return `${m}m`;
+  }
+  const hours = Math.floor(m / 60);
+  const rem = m % 60;
+  return rem ? `${hours}h ${rem}m` : `${hours}h`;
+}
+
+export function optionalNumber(value: number | null | undefined): string {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return '—';
+  }
+  return String(Math.round(value * 10) / 10);
+}
+

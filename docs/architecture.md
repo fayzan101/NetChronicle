@@ -50,9 +50,9 @@ flowchart TB
 |-------|----------------|
 | `/` | Today summary + live strip |
 | `/timeline` | Timeline view |
-| `/network` | Network monitoring panel (soon) |
-| `/analytics` | Charts (soon) |
-| `/insights` | Insights panel (soon) |
-| `/reports` | Reports (soon) |
+| `/network` | Network monitoring panel |
+| `/analytics` | Charts |
+| `/insights` | Insights panel |
+| `/reports` | Reports |
 | `/live` | Live mode |
 | `/settings` | Settings (soon) |

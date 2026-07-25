@@ -1,0 +1,34 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Signals</p>
+      <h1>Insights</h1>
+    </div>
+    <label class="date-field">
+      <span>Date</span>
+      <input
+        type="date"
+        [ngModel]="date()"
+        (ngModelChange)="onDateChange($event)"
+      />
+    </label>
+  </header>
+
+  @if (loading()) {
+    <p class="state">Generating insights…</p>
+  } @else if (error()) {
+    <p class="state is-error">{{ error() }}</p>
+  } @else if (insights().length === 0) {
+    <p class="state">No insights for this day yet. More sessions will unlock patterns.</p>
+  } @else {
+    <ul class="insights">
+      @for (item of insights(); track item.title + item.body) {
+        <li [attr.data-severity]="item.severity">
+          <span class="severity">{{ item.severity }}</span>
+          <h2>{{ item.title }}</h2>
+          <p>{{ item.body }}</p>
+        </li>
+      }
+    </ul>
+  }
+</section>

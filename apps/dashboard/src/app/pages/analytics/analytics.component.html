@@ -1,0 +1,128 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Patterns</p>
+      <h1>Analytics</h1>
+    </div>
+    <label class="date-field">
+      <span>Date</span>
+      <input
+        type="date"
+        [ngModel]="date()"
+        (ngModelChange)="onDateChange($event)"
+      />
+    </label>
+  </header>
+
+  @if (loading()) {
+    <p class="state">Loading analytics…</p>
+  } @else if (error() && sessions().length === 0) {
+    <p class="state is-error">{{ error() }}</p>
+  } @else {
+    <div class="metrics">
+      <article class="metric">
+        <span class="metric-label">Sessions</span>
+        <span class="metric-value">{{ sessions().length }}</span>
+      </article>
+      <article class="metric">
+        <span class="metric-label">Avg productivity</span>
+        <span class="metric-value">
+          @if (avgScore() !== null) {
+            {{ avgScore()! | number: '1.0-0' }}
+          } @else {
+            —
+          }
+        </span>
+      </article>
+      @if (report()?.summary?.totalOnlineMinutes; as online) {
+        <article class="metric">
+          <span class="metric-label">Online</span>
+          <span class="metric-value">{{ formatMinutes(online) }}</span>
+        </article>
+      }
+      @if (report()?.summary?.focusMinutes; as focus) {
+        <article class="metric">
+          <span class="metric-label">Focus</span>
+          <span class="metric-value">{{ formatMinutes(focus) }}</span>
+        </article>
+      }
+    </div>
+
+    <h2 class="section-title">By category</h2>
+    @if (categoryBars().length === 0) {
+      <p class="state">No category data for this day.</p>
+    } @else {
+      <ul class="bars">
+        @for (item of categoryBars(); track item.label) {
+          <li>
+            <div class="bar-meta">
+              <span>{{ item.label }}</span>
+              <span class="muted">{{ formatMinutes(item.minutes) }}</span>
+            </div>
+            <div class="track" aria-hidden="true">
+              <span [style.width.%]="item.pct"></span>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (timeOfDay().length) {
+      <h2 class="section-title">Time of day</h2>
+      <div class="hours" role="img" aria-label="Minutes by hour">
+        @for (bucket of timeOfDay(); track bucket.hour) {
+          <div class="hour">
+            <span
+              class="hour-bar"
+              [style.height.%]="(bucket.totalMinutes / maxHour()) * 100"
+              [title]="bucket.hour + ':00 · ' + formatMinutes(bucket.totalMinutes)"
+            ></span>
+            <span class="hour-label">{{ bucket.hour }}</span>
+          </div>
+        }
+      </div>
+    }
+
+    <h2 class="section-title">Top apps</h2>
+    @if (topApps().length === 0) {
+      <p class="state">No app data yet.</p>
+    } @else {
+      <ul class="list">
+        @for (app of topApps(); track app.app || app.minutes) {
+          <li>
+            <span>{{ app.app || 'App' }}</span>
+            <span class="muted">{{ formatMinutes(app.minutes) }}</span>
+          </li>
+        }
+      </ul>
+    }
+
+    <h2 class="section-title">Sessions</h2>
+    @if (sessions().length === 0) {
+      <p class="state">No sessions for this day.</p>
+    } @else {
+      <ul class="list sessions">
+        @for (session of sessions(); track session.sessionId) {
+          <li>
+            <div>
+              <strong>{{ formatClock(session.startTime) }}</strong>
+              <span class="muted">
+                · {{ session.category }}
+                @if (session.primaryApps.length) {
+                  · {{ session.primaryApps.slice(0, 2).join(', ') }}
+                }
+              </span>
+            </div>
+            <span class="muted">
+              @if (session.productivityScore !== null) {
+                {{ session.productivityScore | number: '1.0-0' }}
+              } @else {
+                —
+              }
+            </span>
+          </li>
+        }
+      </ul>
+    }
+  }
+</section>

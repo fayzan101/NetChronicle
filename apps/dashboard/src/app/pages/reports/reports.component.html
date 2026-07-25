@@ -1,0 +1,132 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Summaries</p>
+      <h1>Reports</h1>
+    </div>
+    <div class="controls">
+      <label class="date-field">
+        <span>Type</span>
+        <select
+          [ngModel]="reportType()"
+          (ngModelChange)="onTypeChange($event)"
+        >
+          @for (type of types; track type) {
+            <option [ngValue]="type">{{ type }}</option>
+          }
+        </select>
+      </label>
+      <label class="date-field">
+        <span>Date</span>
+        <input
+          type="date"
+          [ngModel]="date()"
+          (ngModelChange)="onDateChange($event)"
+        />
+      </label>
+    </div>
+  </header>
+
+  <div class="export-row">
+    <button type="button" class="btn" (click)="export('json')">Export JSON</button>
+    <button type="button" class="btn" (click)="export('csv')">Export CSV</button>
+  </div>
+
+  @if (loading()) {
+    <p class="state">Loading report…</p>
+  } @else if (error() && !report()) {
+    <p class="state is-error">{{ error() }}</p>
+  } @else if (!report()) {
+    <p class="state">No report available.</p>
+  }
+
+  @if (!loading() && report(); as r) {
+    <p class="period">
+      {{ r.periodStart }}
+      @if (r.periodEnd !== r.periodStart) {
+        → {{ r.periodEnd }}
+      }
+      @if (r.cached) {
+        <span class="muted">· cached</span>
+      }
+    </p>
+
+    <div class="metrics">
+      <article class="metric metric-hero">
+        <span class="metric-label">Productivity</span>
+        <span class="metric-value">{{ scoreLabel(r) }}</span>
+      </article>
+      @if (r.summary.totalOnlineMinutes !== undefined) {
+        <article class="metric">
+          <span class="metric-label">Online</span>
+          <span class="metric-value">{{ formatMinutes(r.summary.totalOnlineMinutes) }}</span>
+        </article>
+      }
+      @if (r.summary.productiveMinutes !== undefined) {
+        <article class="metric">
+          <span class="metric-label">Productive</span>
+          <span class="metric-value">{{ formatMinutes(r.summary.productiveMinutes) }}</span>
+        </article>
+      }
+      @if (r.summary.sessionCount !== undefined) {
+        <article class="metric">
+          <span class="metric-label">Sessions</span>
+          <span class="metric-value">{{ r.summary.sessionCount }}</span>
+        </article>
+      }
+      @if (r.summary.distractionImpactPct !== undefined) {
+        <article class="metric">
+          <span class="metric-label">Distraction impact</span>
+          <span class="metric-value">{{ r.summary.distractionImpactPct | number: '1.0-0' }}%</span>
+        </article>
+      }
+      @if (r.summary.focusMinutes !== undefined) {
+        <article class="metric">
+          <span class="metric-label">Focus</span>
+          <span class="metric-value">{{ formatMinutes(r.summary.focusMinutes) }}</span>
+        </article>
+      }
+    </div>
+
+    @if (r.summary.topApps?.length) {
+      <h2 class="section-title">Top apps</h2>
+      <ul class="list">
+        @for (app of r.summary.topApps!; track app.app || $index) {
+          <li>
+            <span>{{ app.app }}</span>
+            <span class="muted">{{ formatMinutes(app.minutes) }}</span>
+          </li>
+        }
+      </ul>
+    }
+
+    @if (r.summary.topDomains?.length) {
+      <h2 class="section-title">Top domains</h2>
+      <ul class="list">
+        @for (domain of r.summary.topDomains!; track domain.domain || $index) {
+          <li>
+            <span>{{ domain.domain }}</span>
+            <span class="muted">{{ formatMinutes(domain.minutes) }}</span>
+          </li>
+        }
+      </ul>
+    }
+  }
+
+  @if (cached().length) {
+    <h2 class="section-title">Cached reports</h2>
+    <ul class="list">
+      @for (item of cached(); track item.reportType + item.periodStart + item.createdAt) {
+        <li>
+          <span>
+            {{ item.reportType }} · {{ item.periodStart }}
+            @if (item.periodEnd !== item.periodStart) {
+              → {{ item.periodEnd }}
+            }
+          </span>
+          <span class="muted">{{ createdDay(item.createdAt) }}</span>
+        </li>
+      }
+    </ul>
+  }
+</section>

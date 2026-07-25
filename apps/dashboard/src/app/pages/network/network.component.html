@@ -1,0 +1,94 @@
+<section class="page">
+  <header class="page-head">
+    <div>
+      <p class="eyebrow">Connectivity</p>
+      <h1>Network</h1>
+    </div>
+    <label class="date-field">
+      <span>Date</span>
+      <input
+        type="date"
+        [ngModel]="date()"
+        (ngModelChange)="onDateChange($event)"
+      />
+    </label>
+  </header>
+
+  @if (loading()) {
+    <p class="state">Loading network metrics…</p>
+  } @else if (error() && !stats()) {
+    <p class="state is-error">{{ error() }}</p>
+  } @else if (!stats()) {
+    <p class="state">No network data for this day.</p>
+  }
+
+  @if (!loading() && stats(); as s) {
+    <div class="metrics">
+      <article class="metric metric-hero">
+        <span class="metric-label">Stability</span>
+        <span class="metric-value">{{ s.stabilityScore | number: '1.0-0' }}</span>
+        <div class="bar" aria-hidden="true">
+          <span [style.width.%]="s.stabilityScore"></span>
+        </div>
+      </article>
+      <article class="metric">
+        <span class="metric-label">Avg latency</span>
+        <span class="metric-value">{{ optionalNumber(s.aggregation.avgLatencyMs) }}<small>ms</small></span>
+      </article>
+      <article class="metric">
+        <span class="metric-label">P95 latency</span>
+        <span class="metric-value">{{ optionalNumber(s.aggregation.p95LatencyMs) }}<small>ms</small></span>
+      </article>
+      <article class="metric">
+        <span class="metric-label">Packet loss</span>
+        <span class="metric-value">{{ optionalNumber(s.aggregation.avgPacketLossPct) }}<small>%</small></span>
+      </article>
+      <article class="metric">
+        <span class="metric-label">Disconnects</span>
+        <span class="metric-value">{{ s.aggregation.disconnectCount }}</span>
+      </article>
+      <article class="metric">
+        <span class="metric-label">Samples</span>
+        <span class="metric-value">{{ s.aggregation.sampleCount }}</span>
+      </article>
+    </div>
+
+    @if (s.samples.length) {
+      <h2 class="section-title">Latency through the day</h2>
+      <div class="spark" role="img" aria-label="Latency samples">
+        @for (sample of s.samples; track sample.recordedAt) {
+          <span
+            class="spark-bar"
+            [class.is-disconnect]="sample.disconnect"
+            [style.height.%]="barHeight(sample.latencyMs)"
+            [title]="formatClock(sample.recordedAt) + ' · ' + optionalNumber(sample.latencyMs) + ' ms'"
+          ></span>
+        }
+      </div>
+    } @else {
+      <p class="state">No samples for this day.</p>
+    }
+
+    <h2 class="section-title">Events</h2>
+    @if (events().length === 0) {
+      <p class="state">No disconnects or spikes recorded.</p>
+    } @else {
+      <ul class="events">
+        @for (event of events(); track event.recordedAt + event.kind) {
+          <li>
+            <time>{{ formatClock(event.recordedAt) }}</time>
+            <span class="kind">{{ event.kind }}</span>
+            <span class="detail">
+              @if (event.latencyMs !== null) {
+                {{ event.latencyMs | number: '1.0-0' }} ms
+              }
+              @if (event.packetLossPct !== null) {
+                · loss {{ event.packetLossPct | number: '1.0-0' }}%
+              }
+            </span>
+          </li>
+        }
+      </ul>
+    }
+  }
+</section>
