@@ -1,6 +1,6 @@
 # NetChronicle dashboard
 
-Angular (v19) UI for NetChronicle — Phase 8: **Today**, **Timeline**, **Live**, **Network**, **Analytics**, **Insights**, and **Reports** (Settings next).
+Angular (v19) UI for NetChronicle — Phase 8 complete: Today, Timeline, Live, Network, Analytics, Insights, Reports, and Settings (auth + privacy).
 
 ## Run
 

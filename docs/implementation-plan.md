@@ -18,10 +18,10 @@
 | **5** | **Tracking completeness** | ✅ Done (this branch) |
 | **6** | **Workers, reports & hardening** | ✅ Done (this branch) |
 | **7** | **Auth, settings & privacy** | ✅ Done (this branch) |
-| **8** | **Dashboard (Angular)** | 🔄 Slice 2 (core pages); Settings remaining |
+| **8** | **Dashboard (Angular)** | ✅ Done |
 | **9** | **Optional extensions** | ○ Later |
 
-**Recommended next step:** Phase 8 Settings + auth UI (login, API keys, privacy).
+**Recommended next step:** Phase 9 optional extensions, or polish/deploy.
 
 ---
 
@@ -200,7 +200,7 @@ Do not re-implement these unless fixing bugs.
    | `/analytics` | Charts (daily/weekly) | ✅ |
    | `/insights` | Insight cards | ✅ |
    | `/reports` | Cached reports + export | ✅ |
-   | `/settings` | Tracking + privacy controls + auth UI | ⬜ Later |
+   | `/settings` | Tracking + privacy controls + auth UI | ✅ |
 
 3. **UX constraints**
    - One job per page; avoid dashboard clutter in the first viewport of marketing pages if any
@@ -213,8 +213,8 @@ Do not re-implement these unless fixing bugs.
 
 ### Exit criteria
 
-- [x] Today / Timeline / Live / Network / Analytics / Insights / Reports render real API data (local `AUTH_REQUIRED=false`)
-- [ ] Settings + auth UI
+- [x] Today / Timeline / Live / Network / Analytics / Insights / Reports / Settings render real API data
+- [x] Auth token storage + Bearer interceptor (optional when `AUTH_REQUIRED=false`)
 - [x] `scripts/dev.ps1` starts API + agent + dashboard docs match reality
 - [x] Mobile-usable layout for timeline + today view
 
@@ -240,7 +240,8 @@ Do not re-implement these unless fixing bugs.
 ```
 Phase 0–6  ✅  Shipped
 Phase 7    ✅  Auth + settings + privacy
-Phase 8    →   Angular dashboard (Settings remaining)
+Phase 8    →   Angular dashboard ✅
+Phase 9    →   Optional extensions
 Phase 9    ○   Optional advanced features
 ```
 
