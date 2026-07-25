@@ -18,10 +18,10 @@
 | **5** | **Tracking completeness** | ✅ Done (this branch) |
 | **6** | **Workers, reports & hardening** | ✅ Done (this branch) |
 | **7** | **Auth, settings & privacy** | ✅ Done (this branch) |
-| **8** | **Dashboard (Next.js)** | ⬜ Next |
+| **8** | **Dashboard (Angular)** | 🔄 Slice in progress (Today / Timeline / Live) |
 | **9** | **Optional extensions** | ○ Later |
 
-**Recommended next step:** Phase 8 — Next.js dashboard.
+**Recommended next step:** Finish Phase 8 remaining routes (network, analytics, insights, reports, settings + auth UI).
 
 ---
 
@@ -173,48 +173,52 @@ Do not re-implement these unless fixing bugs.
 
 ---
 
-## Phase 8 — Dashboard (Next.js)
+## Phase 8 — Dashboard (Angular)
 
 **Goal:** First usable UI against the stable API contract.
 
 **Effort:** 2–4 weeks  
-**Location:** `apps/dashboard` (referenced by `scripts/dev.ps1` / `.env.example`)
+**Location:** `apps/dashboard` (referenced by `scripts/dev.ps1` / `.env.example`)  
+**Stack:** Angular 19 (standalone), not Next.js
 
 **Prerequisite:** Phases 4–6 preferably done; Phase 7 if multi-user is required.
 
 ### Tasks
 
 1. **Scaffold**
-   - Next.js app, typed API client from `docs/api.md`
-   - Env: `NEXT_PUBLIC_API_URL`
+   - [x] Angular app, typed API client from `docs/api.md`
+   - [x] Env: `environment*.ts` → `apiUrl` (default `http://localhost:8080`)
 
 2. **Routes** (from `docs/architecture.md`)
 
-   | Route | Purpose |
-   |-------|---------|
-   | `/` | Today summary + live status |
-   | `/timeline` | Merged app + website day view |
-   | `/network` | Latency / loss / disconnects |
-   | `/analytics` | Charts (daily/weekly) |
-   | `/insights` | Insight cards |
-   | `/reports` | Cached reports + export |
-   | `/live` | Live mode polling |
-   | `/settings` | Tracking + privacy controls |
+   | Route | Purpose | Status |
+   |-------|---------|--------|
+   | `/` | Today summary + live status | ✅ Slice |
+   | `/timeline` | Merged app + website day view | ✅ Slice |
+   | `/live` | Live mode polling | ✅ Slice |
+   | `/network` | Latency / loss / disconnects | ⬜ Later |
+   | `/analytics` | Charts (daily/weekly) | ⬜ Later |
+   | `/insights` | Insight cards | ⬜ Later |
+   | `/reports` | Cached reports + export | ⬜ Later |
+   | `/settings` | Tracking + privacy controls + auth UI | ⬜ Later |
 
 3. **UX constraints**
    - One job per page; avoid dashboard clutter in the first viewport of marketing pages if any
    - Prefer charts/tables that answer “what did I do / how was my network”
 
 4. **Polish**
-   - Loading / empty / error states
-   - Date picker wired to `?date=` / `?from=` / `?to=`
+   - [x] Loading / empty / error states (slice pages)
+   - [x] Date picker wired to `?date=` on Today + Timeline
    - Optional: system tray later via Tauri (Phase 9)
 
 ### Exit criteria
 
-- [ ] All core routes render real API data
-- [ ] `scripts/dev.ps1` starts API + agent + dashboard docs match reality
-- [ ] Mobile-usable layout for timeline + today view
+- [x] Today / Timeline / Live render real API data (local `AUTH_REQUIRED=false`)
+- [ ] Remaining core routes render real API data
+- [x] `scripts/dev.ps1` starts API + agent + dashboard docs match reality
+- [x] Mobile-usable layout for timeline + today view
+
+**Branch:** `feature/phase-8-dashboard`
 
 ---
 
@@ -236,7 +240,7 @@ Do not re-implement these unless fixing bugs.
 ```
 Phase 0–6  ✅  Shipped
 Phase 7    ✅  Auth + settings + privacy
-Phase 8    →   Next.js dashboard             ← start here
+Phase 8    →   Angular dashboard (slice: Today/Timeline/Live)
 Phase 9    ○   Optional advanced features
 ```
 

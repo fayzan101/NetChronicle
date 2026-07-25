@@ -18,7 +18,7 @@ flowchart TB
 
     DB[(PostgreSQL)]
     API[netchronicle-api]
-    UI[Next.js dashboard]
+    UI[Angular dashboard]
 
     Browser --> Agent
     Agent --> NM
@@ -48,11 +48,11 @@ flowchart TB
 
 | Route | Plan section |
 |-------|----------------|
-| `/` | Dashboard home |
+| `/` | Today summary + live strip |
 | `/timeline` | Timeline view |
-| `/network` | Network monitoring panel |
-| `/analytics` | Charts |
-| `/insights` | Insights panel |
-| `/reports` | Reports |
+| `/network` | Network monitoring panel (soon) |
+| `/analytics` | Charts (soon) |
+| `/insights` | Insights panel (soon) |
+| `/reports` | Reports (soon) |
 | `/live` | Live mode |
-| `/settings` | Settings |
+| `/settings` | Settings (soon) |

@@ -51,6 +51,15 @@ cargo run -p netchronicle-worker
 
 API: `http://127.0.0.1:8080`
 
+### Dashboard
+
+```bash
+cd apps/dashboard
+npm start
+```
+
+Dashboard: `http://localhost:4200` (expects API at `http://localhost:8080` with `AUTH_REQUIRED=false` for local mode).
+
 ## Environment variables
 
 | Variable | Default | Description |

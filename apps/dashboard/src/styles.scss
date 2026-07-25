@@ -1,0 +1,40 @@
+:root {
+  --ink: #10243a;
+  --mist: #eef5f2;
+  --muted: #5b6f7e;
+  --line: color-mix(in srgb, #10243a 12%, transparent);
+  --teal: #1f8a7a;
+  --lime: #b7e36b;
+  --danger: #b42318;
+  --font-display: 'Syne', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 12% -10%, color-mix(in srgb, var(--teal) 18%, transparent), transparent 60%),
+    radial-gradient(900px 500px at 100% 0%, color-mix(in srgb, var(--lime) 22%, transparent), transparent 55%),
+    linear-gradient(165deg, #f4faf7 0%, #e7eef3 48%, #dfe9e6 100%);
+  background-attachment: fixed;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
